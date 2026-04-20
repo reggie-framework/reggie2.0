@@ -15,6 +15,7 @@ import sys
 import fileinput
 from timeit import default_timer as timer
 import logging
+import subprocess
 
 # import reggie source code
 # use reggie2.0 functions by adding the path
@@ -85,11 +86,11 @@ class Case(ExternalCommand):
 
     def create(self, combi, digits):
         # copy original parameter.ini file to backup parameter_backup.ini file
-        os.system(f"cp {self.parameter_file} parameter_backup.ini")
+        subprocess.check_call(f"cp {self.parameter_file} parameter_backup.ini")
 
         # create temorary parameter_tmp.ini file which will be edited
         tmp_file_name = "parameter_tmp.ini"
-        os.system(f"cp {self.parameter_file} {tmp_file_name}")  # mv parameter file to tmp file
+        subprocess.check_call(f"cp {self.parameter_file} {tmp_file_name}")  # mv parameter file to tmp file
 
         # check each line; if a changable parameter is found, set the current key/value pair in the combi
         with fileinput.input('parameter_tmp.ini', inplace=True) as f:
@@ -103,7 +104,7 @@ class Case(ExternalCommand):
                     print(line.strip())
 
         # copy temorary parameter_tmp.ini to original file
-        os.system(f"mv {tmp_file_name} {self.parameter_file}")  # mv tmp file to parameter file
+        subprocess.check_call(f"mv {tmp_file_name} {self.parameter_file}")  # mv tmp file to parameter file
 
     def names(self):
         # read combinations in 'parameter.ini' for renaming the results
@@ -187,7 +188,7 @@ class Case(ExternalCommand):
                     #  ".m2ts", ".mkv", ".mov", ".mp4", ".mpg", ".mpeg", \
                     #  ".rm", ".swf", ".vob", ".wmv"]
                     if file.endswith(tuple(ext)):
-                        os.system("cp " + file_path + " " + self.results_sub + "/.")
+                        subprocess.check_call("cp " + file_path + " " + self.results_sub + "/.")
         except Exception as ex:
             print("save_data: cannote store any data because (some) output was not created")
             print('Error: ' + str(ex))
@@ -203,7 +204,7 @@ class Case(ExternalCommand):
                             new_name = self.prefix + file
                     except Exception:
                         new_name = "L2" + self.suffix + ".pdf"
-                    os.system("cp output_dir/standalone/examples/cmd_0001/" + file + " " + self.results_main + new_name)  # move file to upper most path
+                    subprocess.check_call("cp output_dir/standalone/examples/cmd_0001/" + file + " " + self.results_main + new_name)  # move file to upper most path
 
                 if file.endswith(".csv"):
                     try:
@@ -213,7 +214,7 @@ class Case(ExternalCommand):
                             new_name = self.prefix + file
                     except Exception:
                         new_name = "L2" + self.suffix + ".csv"
-                    os.system("cp output_dir/standalone/examples/cmd_0001/" + file + " " + self.results_main + new_name)  # move file to upper most path
+                    subprocess.check_call("cp output_dir/standalone/examples/cmd_0001/" + file + " " + self.results_main + new_name)  # move file to upper most path
         except Exception as ex:
             print("save_data: cannote store convergence data because (some) output was not created")
             print('Error: ' + str(ex))
