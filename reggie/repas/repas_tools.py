@@ -92,14 +92,15 @@ class Case(ExternalCommand):
         os.system(f"cp {self.parameter_file} {tmp_file_name}")  # mv parameter file to tmp file
 
         # check each line; if a changable parameter is found, set the current key/value pair in the combi
-        for line in fileinput.input('parameter_tmp.ini', inplace=True):
-            line_written = False
-            for key, value in combi.items():
-                if digits[key] >= 0 and line.startswith(key):
-                    print(f"{key} = {value}")
-                    line_written = True
-            if not line_written:
-                print(line.strip())
+        with fileinput.input('parameter_tmp.ini', inplace=True) as f:
+            for line in f:
+                line_written = False
+                for key, value in combi.items():
+                    if digits[key] >= 0 and line.startswith(key):
+                        print(f"{key} = {value}")
+                        line_written = True
+                if not line_written:
+                    print(line.strip())
 
         # copy temorary parameter_tmp.ini to original file
         os.system(f"mv {tmp_file_name} {self.parameter_file}")  # mv tmp file to parameter file
