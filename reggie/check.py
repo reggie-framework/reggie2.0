@@ -15,7 +15,6 @@ import sys
 import re
 import shutil
 import subprocess
-from typing import cast
 import tempfile
 
 from reggie import combinations
