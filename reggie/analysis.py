@@ -1616,7 +1616,7 @@ class Analyze_h5diff(Analyze, ExternalCommand):
                                     try:
                                         dataset = f
                                         # check if attribute exists (case insensitive)
-                                        attrs = [attr for attr in dataset.attrs]
+                                        attrs = list(dataset.attrs)
                                         lower_attrs = [attr.lower() for attr in attrs]
                                         if variable_attribute.lower() in lower_attrs:
                                             variable_attribute_index = lower_attrs.index(variable_attribute.lower())
