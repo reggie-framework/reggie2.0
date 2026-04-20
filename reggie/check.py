@@ -251,9 +251,9 @@ def StandaloneAutomaticMPIDetection(binary_path):
                 err = err.decode("utf-8", 'ignore')
 
             # Check if the grep result is not empty
-            if std or 'not a dynamic executable' in cast(str, err):
+            if std or 'not a dynamic executable' in err:
                 MPIifOFF = False
-                if 'not a dynamic executable' in cast(str, err):
+                if 'not a dynamic executable' in err:
                     err = err.rstrip('\n')
                     err = err.lstrip()
                     print(
