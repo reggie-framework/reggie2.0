@@ -10,7 +10,6 @@
 #
 # You should have received a copy of the GNU General Public License along with reggie2.0. If not, see <http://www.gnu.org/licenses/>.
 # ==================================================================================================================================
-from __future__ import print_function  # required for print() function with line break via "end=' '"
 from timeit import default_timer as timer
 import os
 import sys
