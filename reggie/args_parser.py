@@ -13,6 +13,7 @@
 import argparse
 import os
 from sys import platform, exit
+from pathlib import Path
 import socket
 import re
 import subprocess
@@ -37,17 +38,16 @@ def getMaxCPUCores():
     # Docker
     # > Check cpuset.cpus for Docker-specific CPU limits
     try:
-        with open('/sys/fs/cgroup/cpuset.cpus') as file:
-            line = file.read().strip()
-            cnt = 0
+        line = Path('/sys/fs/cgroup/cpuset.cpus').read_text().strip()
+        cnt = 0
 
-            # Assemble the number from the comma-separated list
-            for prt in line.split(','):
-                if '-' in prt:
-                    start, end = map(int, prt.split('-'))
-                    cnt += end - start + 1
-                else:
-                    cnt += 1
+        # Assemble the number from the comma-separated list
+        for prt in line.split(','):
+            if '-' in prt:
+                start, end = map(int, prt.split('-'))
+                cnt += end - start + 1
+            else:
+                cnt += 1
 
         if cnt > 0:
             return cnt
