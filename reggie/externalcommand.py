@@ -101,17 +101,17 @@ class ExternalCommand:
         # Check if an environment is used and load it into the subprocess if required
         # fmt: off
         if environment is None :
-            self.process = subprocess.Popen(cmd, \
-                                            stdout             = pipeOut_w, \
-                                            stderr             = pipeErr_w, \
-                                            universal_newlines = True, \
+            self.process = subprocess.Popen(cmd, 
+                                            stdout             = pipeOut_w, 
+                                            stderr             = pipeErr_w, 
+                                            universal_newlines = True, 
                                             cwd                = workingDir)
         else :
-            self.process = subprocess.Popen(cmd, \
-                                            stdout             = pipeOut_w, \
-                                            stderr             = pipeErr_w, \
-                                            universal_newlines = True, \
-                                            cwd                = workingDir, \
+            self.process = subprocess.Popen(cmd, 
+                                            stdout             = pipeOut_w, 
+                                            stderr             = pipeErr_w, 
+                                            universal_newlines = True, 
+                                            cwd                = workingDir, 
                                             env                = environment)
         # fmt: on
 
