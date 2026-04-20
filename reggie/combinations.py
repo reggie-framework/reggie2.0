@@ -332,8 +332,8 @@ def writeCombinationsToFile(combinations, path):
             # check if multiple parameters with the exact same name are used within parameter.ini (examples are BoundaryName or RefState)
             if "MULTIPLE_KEY:" in key:
                 f.write(f"  ! {key}={value}\n")  # write comment into file
-                for item in value:  # write all multiple occurring values of the multiple key without "MULTIPLE_KEY:" to file
-                    f.write(f"{key[13:]}={item}\n")  # write key/value into file
+                # write all multiple occurring values of the multiple key without "MULTIPLE_KEY:" to file
+                f.writelines(f"{key[13:]}={item}\n" for item in value)  # write key/value into file
             else:
                 # for parameters with value 'crosscombinations' in the key-value pair, replace it with the value from 'crosscombinations'
                 #
