@@ -2816,7 +2816,7 @@ class Analyze_integrate_line(Analyze):
                     try:  # try reading a line from the data file and converting it into a numpy array
                         line = np.array([float(x) for x in row])
                         failed = False
-                    except Exception:  #
+                    except Exception:
                         header += 1
                         header_line = row
                         failed = True
