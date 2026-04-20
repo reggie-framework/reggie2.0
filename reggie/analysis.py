@@ -481,9 +481,8 @@ class Clean_up_files:
                     run.analyze_successful = False
                     Analyze.total_errors += 1
                     continue
-                else:
-                    print(tools.yellow(f"[remove_folder]: deleting file '{wildcard}'"))
-                    os.remove(wildcard)
+                print(tools.yellow(f"[remove_folder]: deleting file '{wildcard}'"))
+                os.remove(wildcard)
 
     def __str__(self):
         return "Clean up the output folder by deleting specified files"
@@ -542,12 +541,11 @@ class Analyze_L2_file(Analyze):
                 run.analyze_successful = False
                 Analyze.total_errors += 1
                 continue  # with next run
-            else:
-                # 1.2.1   Read content of the reference file and store in self.file_data list
-                self.file_data = []
-                with open(path_ref) as f:
-                    for line in f:  # iterate over all lines of the file
-                        self.file_data.append(line)
+            # 1.2.1   Read content of the reference file and store in self.file_data list
+            self.file_data = []
+            with open(path_ref) as f:
+                for line in f:  # iterate over all lines of the file
+                    self.file_data.append(line)
 
             # 1.2   Read reference L2 errors from self.file_data list
             try:
@@ -2260,7 +2258,7 @@ class Analyze_vtudiff(Analyze, ExternalCommand):
                     run.analyze_successful = False
                     Analyze.total_errors += 1
                     continue
-                elif array_names_dims != array_names_dims_ref:
+                if array_names_dims != array_names_dims_ref:
                     s = tools.red(
                         f"Analyze_vtudiff: Array names or number of vtk arrays in the vtk files [{file_loc}] (Arrays: {list(array_names_dims.keys())}) do not match with [{reference_file_loc}] (Arrays: {list(array_names_dims_ref.keys())})!"
                     )
@@ -2268,8 +2266,7 @@ class Analyze_vtudiff(Analyze, ExternalCommand):
                     run.analyze_successful = False
                     Analyze.total_errors += 1
                     continue
-                else:
-                    print(tools.indent(tools.yellow("Comparing %s vtk arrays with total of %s columns:"), 2) % (len(array_names_dims), data_shape[1]), list(array_names_dims.keys()))
+                print(tools.indent(tools.yellow("Comparing %s vtk arrays with total of %s columns:"), 2) % (len(array_names_dims), data_shape[1]), list(array_names_dims.keys()))
 
                 # 1.2.1 When sorting is used, the sorted array is written to a new .vtu file with a new name
                 if sort_loc:

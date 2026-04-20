@@ -323,8 +323,7 @@ def getExamples(path, build, log):
                 log.info(tools.red("  skipping example"))
                 continue  # any of the excludes matches the build.configuration.
             # Skip this example for the build.configuration
-            else:
-                log.info(tools.yellow("  not skipping"))
+            log.info(tools.yellow("  not skipping"))
         examples.append(Example(p, build))
     return examples
 
@@ -479,51 +478,50 @@ def getExternals(path, example, build):
             print(s)
             ExternalRun.total_errors += 1  # add error if externalrun fails
             continue
+        # Get binary name
+        binary = os.path.basename(externalbinary).lower()
+
+        # First: Check for the binary under ./bin directory (ignore the original full path)
+        # > Pre-compiled mode: Use only the binary name
+        # > Build mode: Use the complete binary path
+        binary_path = os.path.abspath(os.path.join(build.binary_dir, binary)) if isinstance(build, Standalone) else os.path.abspath(os.path.join(build.binary_dir, externalbinary))
+
+        # Second: If the binary path does not exist
+        # 1.) Check the original binary path, e.g., ./hopr/build/bin/hopr
+        # 2.) for specific binaries, e.g., hopr: check the environment variable: HOPR_PATH
+        if os.path.exists(binary_path):
+            binary_found = True
         else:
-            # Get binary name
-            binary = os.path.basename(externalbinary).lower()
-
-            # First: Check for the binary under ./bin directory (ignore the original full path)
-            # > Pre-compiled mode: Use only the binary name
-            # > Build mode: Use the complete binary path
-            binary_path = os.path.abspath(os.path.join(build.binary_dir, binary)) if isinstance(build, Standalone) else os.path.abspath(os.path.join(build.binary_dir, externalbinary))
-
-            # Second: If the binary path does not exist
-            # 1.) Check the original binary path, e.g., ./hopr/build/bin/hopr
-            # 2.) for specific binaries, e.g., hopr: check the environment variable: HOPR_PATH
+            # If the binary is not within the ./bin/ directory, check if the path points to a binary directly
+            binary_path = os.path.abspath(externalbinary)
             if os.path.exists(binary_path):
                 binary_found = True
-            else:
-                # If the binary is not within the ./bin/ directory, check if the path points to a binary directly
-                binary_path = os.path.abspath(externalbinary)
-                if os.path.exists(binary_path):
+            elif binary == 'hopr':
+                # Try and load hopr binary path form environment variables
+                hopr_path = os.getenv('HOPR_PATH')
+                if hopr_path and os.path.exists(hopr_path):
+                    binary_path = hopr_path
                     binary_found = True
-                elif binary == 'hopr':
-                    # Try and load hopr binary path form environment variables
-                    hopr_path = os.getenv('HOPR_PATH')
-                    if hopr_path and os.path.exists(hopr_path):
-                        binary_path = hopr_path
-                        binary_found = True
-                        combi['externalbinary'] = binary  # over-write user-defined path
-                    else:  # fmt: skip
-                        s = f'Tried loading hopr binary path from environment variable $HOPR_PATH=[{hopr_path}] as the supplied path does not exist.\nAdd the binary path via "export HOPR_PATH=/opt/hopr/1.X/bin/hopr"\n'
-                elif binary == 'pyhope':
-                    # Try and load hopr binary path form environment variables
-                    pyhope_path = shutil.which("pyhope")
-                    if pyhope_path:
-                        binary_path = pyhope_path
-                        binary_found = True
-                        combi['externalbinary'] = pyhope_path  # over-write user-defined path
-                    else:  # fmt: skip
-                        s = f'Tried loading pyhope binary path from environment (pyhope_path = {pyhope_path}), but it was not found."\n'
+                    combi['externalbinary'] = binary  # over-write user-defined path
+                else:  # fmt: skip
+                    s = f'Tried loading hopr binary path from environment variable $HOPR_PATH=[{hopr_path}] as the supplied path does not exist.\nAdd the binary path via "export HOPR_PATH=/opt/hopr/1.X/bin/hopr"\n'
+            elif binary == 'pyhope':
+                # Try and load hopr binary path form environment variables
+                pyhope_path = shutil.which("pyhope")
+                if pyhope_path:
+                    binary_path = pyhope_path
+                    binary_found = True
+                    combi['externalbinary'] = pyhope_path  # over-write user-defined path
+                else:  # fmt: skip
+                    s = f'Tried loading pyhope binary path from environment (pyhope_path = {pyhope_path}), but it was not found."\n'
 
-                # Display error if no binary is found
-                if not binary_found:
-                    s = tools.red(f'getExternals: {s}The supplied path [{binary_path}] via "externalbinary" does not exist.')
-                    externals_errors.append(s)
-                    print(s)
-                    ExternalRun.total_errors += 1  # add error if externalrun fails
-                    continue
+            # Display error if no binary is found
+            if not binary_found:
+                s = tools.red(f'getExternals: {s}The supplied path [{binary_path}] via "externalbinary" does not exist.')
+                externals_errors.append(s)
+                print(s)
+                ExternalRun.total_errors += 1  # add error if externalrun fails
+                continue
 
         # If the binary has been found, assign pre/post flag
         if binary_found:
