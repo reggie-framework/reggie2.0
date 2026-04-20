@@ -31,7 +31,7 @@ General workflow:
 
 
 def main():
-    print('')
+    print()
     print(tools.red(r'       oooooooo      ====================') + tools.yellow(r'=====================================') + tools.green(r'====================      oooooooo       '))
     print(tools.red(r'    ooo   oo   ooo      _____    ______  ') + tools.yellow(r'  _____    _____   _____   ______    ') + tools.green(r' ___         ___       ooo   oo   ooo    '))
     print(tools.red(r'   oo     oo     oo    |  __ \  |  ____| ') + tools.yellow(r' / ____|  / ____| |_   _| |  ____|   ') + tools.green(r'|__ \       / _ \     oo     oo     oo   '))
@@ -41,7 +41,7 @@ def main():
     print(tools.red(r'   oo oo  oo  oo oo    |_|  \_\ |______| ') + tools.yellow(r' \_____|  \_____| |_____| |______|   ') + tools.green(r'|____| (_)  \___/     oo oo  oo  oo oo   '))
     print(tools.red(r'    ooo   oo   ooo                       ') + tools.yellow(r'                                     ') + tools.green(r'                       ooo   oo   ooo    '))
     print(tools.red(r'       oooooooo      ====================') + tools.yellow(r'=====================================') + tools.green(r'====================      oooooooo       '))
-    print('')
+    print()
 
     start = timer()
     print(sys.version_info)

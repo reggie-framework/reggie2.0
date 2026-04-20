@@ -133,7 +133,7 @@ def SummaryOfErrors(builds, args):
     spacing = 1
     for key, value in list(max_lens.items()):
         print(key.ljust(value), spacing * ' ', end=' ')  # skip linebreak
-    print("")
+    print()
 
     # 3. loop over alls builds
     for build in builds:
@@ -153,7 +153,7 @@ def SummaryOfErrors(builds, args):
                 for run in command_line.runs:
                     # 3.2.1 print separation line only if MPI threads change
                     if run.output_strings["MPI"] != str_MPI_old:
-                        print("")
+                        print()
                         str_MPI_old = run.output_strings["MPI"]
                     # 3.2.2 print the run parameters, except the inner most (this one is displayed in # 3.2.3)
                     paramsWithMultipleValues = [item for item in list(run.parameters.items())[1:] if run.digits[item[0]] > 0]
@@ -182,7 +182,7 @@ def SummaryOfErrors(builds, args):
                         else:
                             print(run.output_strings[key].ljust(value), end=' ')  # skip linebreak
                         print(spacing * ' ', end=' ')  # skip linebreak
-                    print("")
+                    print()
 
                     # 3.2.4  print the analyze results line by line
                     for result in run.analyze_results:
@@ -194,7 +194,7 @@ def SummaryOfErrors(builds, args):
 
                     # print an empty line after all errors were displayed
                     if len(run.analyze_results) > 0 or len(run.externals_errors):
-                        print("")
+                        print()
 
 
 def finalize(start, build_errors, run_errors, external_run_errors, analyze_errors, analyze_infos):
@@ -223,7 +223,7 @@ def finalize(start, build_errors, run_errors, external_run_errors, analyze_error
         # fmt: on
         print(f"in [{sec:2.2f} sec] [ {int(days):02d}:{int(hours):02d}:{int(minutes):02d}:{int(seconds):02d} ]")
     else:
-        print("")
+        print()
 
     print(f"Number of build        errors: {build_errors:d}")
     print(f"Number of run          errors: {run_errors:d}")

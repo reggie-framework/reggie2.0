@@ -234,7 +234,7 @@ def finalize(start, run_errors):
         end = timer()
         print("in [%2.2f sec]" % (end - start))
     else:
-        print("")
+        print()
 
     print(f"Number of run     errors: {run_errors:d}")
 

@@ -87,7 +87,7 @@ def displayTable(mylist, nVar, nRuns):
         print(str(j).rjust(5), end=' ')  # skip linebreak
         for i in range(nVar):
             print(f"{mylist[i][j]:20.12e}", end=' ')  # skip linebreak
-        print("")
+        print()
 
 
 def writeTableToFile(mylist, nVar, nRuns, firstColumn, path, name):
