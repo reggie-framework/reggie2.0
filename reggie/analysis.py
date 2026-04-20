@@ -744,7 +744,7 @@ class Analyze_Convtest_h(Analyze):
             if pyplot_module_loaded:  # this boolean is set when importing matplotlib.pyplot
                 f = plt.figure()  # create figure
                 for i in range(nVar):
-                    if 1 == 2:
+                    if False:
                         self.grid_spacing = [1.0 / ((p + 1) * float(x)) for x in self.cells]
                         plt.plot(self.grid_spacing, L2_errors[i], 'ro-')  # create plot
                         plt.xlabel('Average grid spacing for unit domain length L_domain=1')  # set x-label
@@ -968,7 +968,7 @@ class Analyze_Convtest_t(Analyze):
             if pyplot_module_loaded:  # this boolean is set when importing matplotlib.pyplot
                 f = plt.figure()  # create figure
                 for i in range(nVar):
-                    if 1 == 2:
+                    if False:
                         self.grid_spacing = [1.0 / ((self.order) * float(x)) for x in self.x_values]
                         plt.plot(self.grid_spacing, L2_errors[i], 'ro-')  # create plot
                         plt.xlabel('Average grid spacing for unit domain length L_domain=1')  # set x-label
@@ -1148,7 +1148,7 @@ class Analyze_Convtest_p(Analyze):
             for j in range(nVar):
                 increasing_run = [L2_order[j][i] > L2_order[j][i - 1] for i in range(1, len(p) - 1)]  # check for increasing order of convergence
                 print(increasing_run)
-                if 1 == 1:
+                if True:
                     if abs(float(len(increasing_run))) > 0:
                         increasing.append(float(sum(increasing_run)) / float(len(increasing_run)))
                     else:
