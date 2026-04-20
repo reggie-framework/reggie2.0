@@ -2504,7 +2504,7 @@ class Analyze_check_hdf5(Analyze):
             # first key in list: a_group_key = list(f.keys())[0]
 
             # 1.2.1   Check if dataset exists
-            if self.data_set not in f.keys():
+            if self.data_set not in f:
                 s = tools.red("Analyze_check_hdf5: [%s] not found in file=[%s]" % (self.data_set, path))
                 print(s)
                 run.analyze_results.append(s)

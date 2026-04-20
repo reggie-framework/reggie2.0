@@ -41,7 +41,7 @@ def isKeyOf(a, key_IN):
     """Check if the dictionary 'a' contains a key 'key_IN'"""
     found = False
     number = 0
-    for key in a.keys():
+    for key in a:
         if key == key_IN:
             number += 1
             found = True
@@ -52,7 +52,7 @@ def isSubset(a, b):
     """Check if the dictionary 'a' is a subset of the dictionary 'b'"""
     try:
         # build list of booleans, that contains for every key in 'a', if a[key] == b[key]
-        tmp = [a[key] == b[key] for key in a.keys()]
+        tmp = [a[key] == b[key] for key in a]
     except KeyError:  # if a key of 'a' is not in 'b'
         return False
     return all(tmp)  # return True if all elements of tmp are True

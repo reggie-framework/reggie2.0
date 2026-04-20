@@ -1422,7 +1422,7 @@ class PerformCheck:
                                         if args.meshesdir:
                                             # check if externalbinary is set in self.MeshGeneration and should be executed only once, since other externals should be executed normally
                                             # we also save which MeshGenerator is matched to get the file ending
-                                            self.Matched_Generator_Name = next((Generator_Name for Generator_Name in self.MeshGeneration.keys() if Generator_Name in externalbinary), None)
+                                            self.Matched_Generator_Name = next((Generator_Name for Generator_Name in self.MeshGeneration if Generator_Name in externalbinary), None)
                                             if self.Matched_Generator_Name:
                                                 externalcmd = self.mesh_external(run, external, externalrun, build, args)
                                             # execute other externals normally and also hopr every run if hopr binary has random name

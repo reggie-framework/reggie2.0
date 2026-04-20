@@ -124,7 +124,7 @@ def SummaryOfErrors(builds, args):
                     except Exception:
                         pass
 
-                    for key in run.output_strings.keys():
+                    for key in run.output_strings:
                         max_lens[key] = max(max_lens[key], len(run.output_strings[key]))  # set max column widths for summary table
 
     # 2. print header

@@ -228,7 +228,7 @@ def isKeyOf(a, key_IN):
     """Check if the dictionary 'a' contains a key 'key_IN'"""
     found = False
     number = 0
-    for key in a.keys():
+    for key in a:
         if key == key_IN:
             number += 1
             found = True
