@@ -157,7 +157,6 @@ def create_folder(path):
                 if e.errno != os.errno.EEXIST:
                     raise
                 time.sleep(1)  # wait 1 second before next try
-                pass
 
 
 def diff_lists(x, x_ref, tol, tol_type):

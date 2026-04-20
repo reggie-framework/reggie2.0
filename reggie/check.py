@@ -790,7 +790,6 @@ class Run(OutputDirectory, ExternalCommand):
                     "\nError message: [{}]\nThe program will continue without limiting MPI threads for this execution.".format(e)
                 )
                 print(tools.indent(tools.red(s), 2))
-                pass
 
         # check MPI built binary (only possible for reggie-compiled binaries)
         cmd = SetMPIrun(build, args, MPIthreads)
@@ -860,7 +859,6 @@ class Run(OutputDirectory, ExternalCommand):
             except Exception as e:
                 print(tools.red("Tried getting the first State file name from std.out. Failed. Using original restart file for copying: [{}]".format(cmd_restart_file)))
                 print(tools.red("e = {}".format(e)))
-                pass
 
             # 3. Target file path
             restart_file_path_target = os.path.join(self.source_directory, tail)
