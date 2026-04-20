@@ -182,7 +182,7 @@ def StandaloneAutomaticMPIDetection(binary_path):
                                     userblockChecked = True
                                     print(tools.yellow(f"Automatically determined that the executable was compiled with MPI=OFF\n  File: {userblock}\n  Line: {line}"))
                                     break
-                                elif value.lower() == 'on':
+                                if value.lower() == 'on':
                                     MPIifOFF = False
                                     userblockChecked = True
                                     print(tools.yellow(f"Automatically determined that the executable was compiled with MPI=ON\n  File: {userblock}\n  Line: {line}"))
@@ -195,7 +195,7 @@ def StandaloneAutomaticMPIDetection(binary_path):
                             userblockChecked = True
                             print(tools.yellow(f"Automatically determined that the executable was compiled with MPI=OFF (-DUSE_MPI=0)\n  File: {userblock}\n  Line: {line}"))
                             break
-                        elif "-DUSE_MPI=1" in line:
+                        if "-DUSE_MPI=1" in line:
                             MPIifOFF = False
                             userblockChecked = True
                             print(tools.yellow(f"Automatically determined that the executable was compiled with MPI=ON (-DUSE_MPI=1)\n  File: {userblock}\n  Line: {line}"))

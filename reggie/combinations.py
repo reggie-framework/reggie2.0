@@ -99,8 +99,7 @@ def readValueFromFile(filename, key):
                     (currentKey, currentValue) = line.split('=', 1)  # split line at '='
                     if key.lower() == currentKey.lower():  # check if the key matches the one passed to the routine
                         break  # if so, break from the for loop
-                    else:
-                        continue  # better luck in the next line
+                    continue  # better luck in the next line
     # fmt: on
     return currentValue
 
