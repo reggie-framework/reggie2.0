@@ -612,7 +612,7 @@ class ExternalRun(OutputDirectory, ExternalCommand):
 
         if self.return_code != 0:
             self.successful = False
-            return
+            return None
 
         # check if the command 'cmd' can be executed
         cmdstr = " ".join(cmd)
@@ -638,7 +638,7 @@ class ExternalRun(OutputDirectory, ExternalCommand):
                         else:
                             print(tools.red(f"File [{file}] does not exist in the current directory."))
                             self.successful = False
-                            return
+                            return None
                 # execute hopr in meshes_directory
                 self.execute_cmd(cmd, meshes_directory, name=tail, string_info=tools.indent(s, 3))  # run the code
             else:
