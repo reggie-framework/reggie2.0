@@ -176,14 +176,14 @@ def getAnalyzes(path, example, args):
         pyplot_module_loaded = True if use_matplot_lib in ('True', 'true', 't', 'T') else False
 
     # 1.3 Get the names of the files (incl. wildcards) which are to be deleted in the anaylsis stage
-    clean_up_files = options.get('clean_up_files', None)
+    clean_up_files = options.get('clean_up_files')
     if clean_up_files:
         analyze.append(Clean_up_files(clean_up_files))
 
     # 2.0   L2 error from file
     # fmt: off
     L2ErrorFile = SimpleNamespace( \
-                  file           =       options.get('analyze_l2_file',None), \
+                  file           =       options.get('analyze_l2_file'), \
                   tolerance      = float(options.get('analyze_l2_file_tolerance',1.0e-5)), \
                   tolerance_type =       options.get('analyze_l2_file_tolerance_type','absolute'), \
                   error_name     =       options.get('L2_file_error_name','L_2') )
@@ -235,7 +235,7 @@ def getAnalyzes(path, example, args):
     # 2.4.1   must have the following form: "Initial Timestep  :    1.8503722E-01"
     # fmt: off
     ConvtestTime = SimpleNamespace( \
-                   initial_timestep = options.get('analyze_convtest_t_initial_timestep',None), \
+                   initial_timestep = options.get('analyze_convtest_t_initial_timestep'), \
                    tolerance        = float(options.get('analyze_convtest_t_tolerance',1e-2)), \
                    rate             = float(options.get('analyze_convtest_t_rate',1)), \
                    error_name       = options.get('analyze_convtest_t_error_name','L_2'), \
@@ -251,7 +251,7 @@ def getAnalyzes(path, example, args):
 
         if min(ConvtestTime.timestep_factor) <= 0.0 :
             # 2.4.3   automatically get the total number of timesteps must have the following form: "#Timesteps :    1.6600000E+02"
-            ConvtestTime.total_timesteps   = options.get('analyze_convtest_t_total_timesteps',None)
+            ConvtestTime.total_timesteps   = options.get('analyze_convtest_t_total_timesteps')
 
             if ConvtestTime.total_timesteps is None :
                 # 2.4.4   supply the timesteps externally
@@ -287,9 +287,9 @@ def getAnalyzes(path, example, args):
     h5diff = SimpleNamespace( \
              one_diff_per_run = options.get('h5diff_one_diff_per_run',False), \
              allow_reorder    = options.get('h5diff_allow_reorder',False), \
-             reference_file   = options.get('h5diff_reference_file',None), \
-             file             = options.get('h5diff_file',None), \
-             data_set         = options.get('h5diff_data_set',None), \
+             reference_file   = options.get('h5diff_reference_file'), \
+             file             = options.get('h5diff_file'), \
+             data_set         = options.get('h5diff_data_set'), \
              tolerance_value  = options.get('h5diff_tolerance_value',1.0e-5), \
              tolerance_type   = options.get('h5diff_tolerance_type','absolute'), \
              sort             = options.get('h5diff_sort',False), \
@@ -304,9 +304,9 @@ def getAnalyzes(path, example, args):
              # the option where var_attribute/var_name contains _ and is not a list does not make sense since for only one analyze just dont set var_attribute and var_name (but it is caught here
              # anyways, note that if only one of both is None every variables are checked) if var_attribute/var_name is not '_' it is read in normally (with None as default)
              var_attribute = ([None if item == '_' else item for item in options.get('h5diff_var_attribute')] if isinstance(options.get('h5diff_var_attribute'), list)
-                              else (None if options.get('h5diff_var_attribute') == '_' else options.get('h5diff_var_attribute',None))), \
+                              else (None if options.get('h5diff_var_attribute') == '_' else options.get('h5diff_var_attribute'))), \
              var_name = ([None if item == '_' else item for item in options.get('h5diff_var_name')] if isinstance(options.get('h5diff_var_name'), list)
-                          else (None if options.get('h5diff_var_name') == '_' else options.get('h5diff_var_name',None))), \
+                          else (None if options.get('h5diff_var_name') == '_' else options.get('h5diff_var_name'))), \
              referencescopy   = args.referencescopy )
     # only do h5diff test if all variables are defined
     if h5diff.reference_file and h5diff.file and h5diff.data_set:
@@ -317,10 +317,10 @@ def getAnalyzes(path, example, args):
     # default values for tolerance are set in the Analyze_vtudiff class, to enable only using one type but also both together
     vtudiff = SimpleNamespace(
              one_diff_per_run    =options.get('vtudiff_one_diff_per_run', False),
-             reference_file      =options.get('vtudiff_reference_file', None),
-             file                =options.get('vtudiff_file', None),
-             abs_tolerance_value =options.get('vtudiff_absolute_tolerance_value', None),
-             rel_tolerance_value =options.get('vtudiff_relative_tolerance_value', None),
+             reference_file      =options.get('vtudiff_reference_file'),
+             file                =options.get('vtudiff_file'),
+             abs_tolerance_value =options.get('vtudiff_absolute_tolerance_value'),
+             rel_tolerance_value =options.get('vtudiff_relative_tolerance_value'),
              sort                =options.get('vtudiff_sort', False),
              sort_dim            =options.get('vtudiff_sort_dim', -1),
              sort_var            =options.get('vtudiff_sort_var', -1),
@@ -331,7 +331,7 @@ def getAnalyzes(path, example, args):
              max_differences     =options.get('vtudiff_max_differences', 0),
              # see defintion of var_attribute and var_name in h5diff
              array_name          = ([None if item == '_' else item for item in options.get('vtudiff_array_name')] if isinstance(options.get('vtudiff_array_name'), list)
-                                    else (None if options.get('vtudiff_array_name') == '_' else options.get('vtudiff_array_name',None))), \
+                                    else (None if options.get('vtudiff_array_name') == '_' else options.get('vtudiff_array_name'))), \
              referencescopy      =args.referencescopy,
     )
     # only do vtudiff test if all variables are defined
@@ -341,20 +341,20 @@ def getAnalyzes(path, example, args):
     # 2.7   check array bounds in hdf5 file
     # check_hdf5_span: use row or column (default is column)
     CheckHDF5 = SimpleNamespace( \
-                file           = options.get('check_hdf5_file',None), \
-                data_set       = options.get('check_hdf5_data_set',None), \
+                file           = options.get('check_hdf5_file'), \
+                data_set       = options.get('check_hdf5_data_set'), \
                 span           = options.get('check_hdf5_span',2), \
-                dimension      = options.get('check_hdf5_dimension',None),\
-                limits         = options.get('check_hdf5_limits',None) )
+                dimension      = options.get('check_hdf5_dimension'),\
+                limits         = options.get('check_hdf5_limits') )
     if all([CheckHDF5.file, CheckHDF5.data_set, CheckHDF5.dimension, CheckHDF5.limits]) :
         analyze.append(Analyze_check_hdf5(CheckHDF5))
 
     # 2.8   check data file row
     CompareDataFile = SimpleNamespace( \
                       one_diff_per_run = options.get('compare_data_file_one_diff_per_run',True), \
-                      name             = options.get('compare_data_file_name',None), \
-                      reference        = options.get('compare_data_file_reference',None), \
-                      tolerance        = options.get('compare_data_file_tolerance',None), \
+                      name             = options.get('compare_data_file_name'), \
+                      reference        = options.get('compare_data_file_reference'), \
+                      tolerance        = options.get('compare_data_file_tolerance'), \
                       tolerance_type   = options.get('compare_data_file_tolerance_type','absolute'), \
                       line             = options.get('compare_data_file_line','last'), \
                       delimiter        = options.get('compare_data_file_delimiter',','), \
@@ -373,13 +373,13 @@ def getAnalyzes(path, example, args):
     #   integrate_line_option          : special option, e.g., calculating a rate by dividing the integrated values by the time step which is used in the values 'x'
     #   integrate_line_multiplier      : factor for multiplying the result (in order to acquire a physically meaning value for comparison)
     IntegrateLine = SimpleNamespace( \
-                    file            = options.get('integrate_line_file',None), \
+                    file            = options.get('integrate_line_file'), \
                     delimiter       = options.get('integrate_line_delimiter',','), \
-                    columns         = options.get('integrate_line_columns',None), \
-                    integral_value  = options.get('integrate_line_integral_value',None), \
+                    columns         = options.get('integrate_line_columns'), \
+                    integral_value  = options.get('integrate_line_integral_value'), \
                     tolerance_value = options.get('integrate_line_tolerance_value',1e-5), \
                     tolerance_type  = options.get('integrate_line_tolerance_type','absolute'), \
-                    option          = options.get('integrate_line_option',None), \
+                    option          = options.get('integrate_line_option'), \
                     multiplier      = options.get('integrate_line_multiplier',1) )
     if all([IntegrateLine.file,  IntegrateLine.delimiter, IntegrateLine.columns, IntegrateLine.integral_value]) :
         if IntegrateLine.tolerance_type in ('absolute', 'delta', '--delta') :
@@ -401,10 +401,10 @@ def getAnalyzes(path, example, args):
     CompareColumn = SimpleNamespace( \
                     one_diff_per_restart_file   = options.get('compare_column_one_diff_per_restart_file',False), \
                     one_diff_per_run            = options.get('compare_column_one_diff_per_run',True), \
-                    file                        = options.get('compare_column_file',None), \
-                    reference_file              = options.get('compare_column_reference_file',None), \
+                    file                        = options.get('compare_column_file'), \
+                    reference_file              = options.get('compare_column_reference_file'), \
                     delimiter                   = options.get('compare_column_delimiter',','), \
-                    index                       = options.get('compare_column_index',None), \
+                    index                       = options.get('compare_column_index'), \
                     tolerance_value             = options.get('compare_column_tolerance_value',1e-5), \
                     tolerance_type              = options.get('compare_column_tolerance_type','absolute'), \
                     multiplier                  = options.get('compare_column_multiplier',1), \
@@ -421,9 +421,9 @@ def getAnalyzes(path, example, args):
     #   compare_across_commands_tolerance_type   : type of tolerance, either 'absolute' or 'relative'
     #   compare_across_commands_reference        :
     CompareAcrossCommands = SimpleNamespace( \
-                            file             = options.get('compare_across_commands_file',None), \
+                            file             = options.get('compare_across_commands_file'), \
                             column_delimiter = options.get('compare_across_commands_column_delimiter',','), \
-                            column_index     = options.get('compare_across_commands_column_index',None), \
+                            column_index     = options.get('compare_across_commands_column_index'), \
                             line_number      = options.get('compare_across_commands_line_number','last'), \
                             tolerance_value  = options.get('compare_across_commands_tolerance_value',1e-5), \
                             tolerance_type   = options.get('compare_across_commands_tolerance_type','absolute'), \

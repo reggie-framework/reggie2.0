@@ -367,7 +367,7 @@ def getRestartFileList(example):
         if option.values[0] == '':
             raise Exception(tools.red(f"initialization of analyze.ini failed due to empty parameter [{option.name} = {option.values}], which is not allowed."))
 
-    return options.get('restart_file', None)
+    return options.get('restart_file')
 
 
 # ==================================================================================================
