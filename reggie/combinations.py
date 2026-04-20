@@ -216,7 +216,7 @@ def getCombinations(filename, CheckForMultipleKeys=False, OverrideOptionKey=None
     NumOfCombinationsTotal = 1
     # Test if any name has more than one value which would lead to at least 2 combinations, for sanity check later
     only_one_combination = False
-    if not any([(len(option.values) > 1) for option in options]):
+    if not any((len(option.values) > 1) for option in options):
         only_one_combination = True
     for option in options:
         # Sanity check for names that have only one value, but are used in noCrossCombinations (if there is more than one combination)
@@ -310,7 +310,7 @@ def getCombinations(filename, CheckForMultipleKeys=False, OverrideOptionKey=None
                 sys.exit(1)
 
             # Check all noCrossCombinations and skip them is they already were added to the list
-            if not all([digits[key] == digits[noCrossCombination[0]] for key in noCrossCombination]):
+            if not all(digits[key] == digits[noCrossCombination[0]] for key in noCrossCombination):
                 skip = True
                 break
 

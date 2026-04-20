@@ -1499,19 +1499,19 @@ class PerformCheck:
                                 run.rename_failed()
 
                         # Don't remove when run fails
-                        if not all([run.analyze_successful for run in runs_successful]):  # don't delete build folder after all examples/runs
+                        if not all(run.analyze_successful for run in runs_successful):  # don't delete build folder after all examples/runs
                             remove_build_when_successful = False
 
                         # Don't remove when (pre) external fails
                         for run in runs_successful:
                             for external in run.externals_pre:
-                                if not all([externalrun.successful for externalrun in external.runs]):  # don't delete build folder after all examples/runs
+                                if not all(externalrun.successful for externalrun in external.runs):  # don't delete build folder after all examples/runs
                                     remove_build_when_successful = False
 
                         # Don't remove when (post) external fails
                         for run in runs_successful:
                             for external in run.externals_post:
-                                if not all([externalrun.successful for externalrun in external.runs]):  # don't delete build folder after all examples/runs
+                                if not all(externalrun.successful for externalrun in external.runs):  # don't delete build folder after all examples/runs
                                     remove_build_when_successful = False
 
                     # 7.    perform analyze tests comparing corresponding runs from different commands

@@ -1246,7 +1246,7 @@ class Analyze_h5diff(Analyze, ExternalCommand):
                 self.prms[key] = [self.prms[key][0] for i in range(self.nCompares)]
                 numbers[key] = self.nCompares
 
-        if any([(number != self.nCompares) for number in numbers.values()]):
+        if any((number != self.nCompares) for number in numbers.values()):
             raise Exception(tools.red("Number of multiple data sets for multiple h5diffs is inconsistent. Please ensure all options have the same length or length=1."))
 
         # Check tolerance type (absolute or relative) and set the correct h5diff command line argument
@@ -1933,7 +1933,7 @@ class Analyze_vtudiff(Analyze, ExternalCommand):
                 self.prms[key] = [self.prms[key][0] for i in range(self.nCompares)]
                 numbers[key] = self.nCompares
 
-        if any([(number != self.nCompares) for number in numbers.values()]):
+        if any((number != self.nCompares) for number in numbers.values()):
             raise Exception(tools.red("Number of multiple data sets for multiple vtudiffs is inconsistent. Please ensure all options have the same length or length=1."))
 
         # Check dataset sorting
@@ -2499,11 +2499,11 @@ class Analyze_check_hdf5(Analyze):
                 # 1.3.2   Check either rows or columns
                 if self.span == 1:  # Check each row element
                     # Note that sort_var_loc begins at 0 as python starts by 0
-                    lower_test = any([x < self.lower for x in b[:, i]])
-                    upper_test = any([x > self.upper for x in b[:, i]])
+                    lower_test = any(x < self.lower for x in b[:, i])
+                    upper_test = any(x > self.upper for x in b[:, i])
                 elif self.span == 2:  # Check each column element
-                    lower_test = any([x < self.lower for x in b[i, :]])
-                    upper_test = any([x > self.upper for x in b[i, :]])
+                    lower_test = any(x < self.lower for x in b[i, :])
+                    upper_test = any(x > self.upper for x in b[i, :])
                 else:
                     s = tools.red(
                         f"Analyze_check_hdf5: Bounding box check failed for i={i}, because currently only sorting of 2-dimensional arrays is implemented.\nThis means, "
@@ -2590,7 +2590,7 @@ class Analyze_compare_data_file(Analyze):
                 self.prms[key] = [self.prms[key][0] for i in range(self.nCompares)]
                 numbers[key] = self.nCompares
 
-        if any([(number != self.nCompares) for number in numbers.values()]):
+        if any((number != self.nCompares) for number in numbers.values()):
             raise Exception(tools.red("Number of multiple data sets for multiple compare_data_file is inconsistent. Please ensure all options have the same length or length=1."))
 
         # Check tolerance type (absolute or relative) and set the correct h5diff command line argument
@@ -2983,7 +2983,7 @@ class Analyze_compare_column(Analyze):
                 numbers[key] = self.nCompares
 
         # Check if all parameters have the same length (values with only one parameter have been filled up above)
-        if any([(number != self.nCompares) for number in numbers.values()]):
+        if any((number != self.nCompares) for number in numbers.values()):
             raise Exception(tools.red("Number of multiple data sets for multiple compare_column is inconsistent. Please ensure all options have the same length or length=1."))
 
         # Check tolerance type (absolute or relative) and set the correct h5diff command line argument
