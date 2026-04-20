@@ -67,7 +67,7 @@ try:
     SimpleNamespace = types.SimpleNamespace  # Python 3.3+
 except AttributeError:
     # For older python versions than Python 3.3, the class can be implemented as follows (in Python 3.3 the implementation is in C)
-    class SimpleNamespace(object):
+    class SimpleNamespace:
         def __init__(self, **kwargs):
             self.__dict__.update(kwargs)
 
