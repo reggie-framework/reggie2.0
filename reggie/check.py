@@ -343,16 +343,14 @@ class Command_Lines(OutputDirectory):
 
 def getCommand_Lines(path, example, MPIbuilt, MaxCores):
     command_lines = []
-    i = 1
     # If single execution is to be performed, remove "MPI =! 1" from command line list
     if not MPIbuilt:
-        combis, digits = combinations.getCombinations(path, OverrideOptionKey='MPI', OverrideOptionValue='1')
+        combis, _ = combinations.getCombinations(path, OverrideOptionKey='MPI', OverrideOptionValue='1')
     else:
         combis, _ = combinations.getCombinations(path, MaxCores=MaxCores)
 
-    for r in combis:
-        command_lines.append(Command_Lines(r, example, i))
-        i += 1
+    for i, r in enumerate(combis):
+        command_lines.append(Command_Lines(r, example, i+1))
 
     return command_lines
 
@@ -660,7 +658,6 @@ class ExternalRun(OutputDirectory, ExternalCommand):
 def getExternalRuns(parameterfilepath, external):
     """Get all combinations in 'parameter.ini'"""
     externalruns = []
-    i = 1
     # get combis : for each externalrun a combination of parameters is stored in a dict containing a [key]-[value] pairs
     #              combis contains multiple dicts 'OrderedDict'
     #              example for a key = 'N' and its value = '5' for polynomial degree of 5
@@ -668,7 +665,7 @@ def getExternalRuns(parameterfilepath, external):
     #              example in parameter.ini: N = 1,2,3 then digits would contain OrderedDict([('N', 2),...) for 0,1,2 = 3 different
     #              values for N)
     combis, digits = combinations.getCombinations(parameterfilepath, CheckForMultipleKeys=True)  #  parameterfilepath = path to parameter.ini (source)
-    for parameters in combis:
+    for i, parameters in enumerate(combis):
         # check each [key] for empty [value] (e.g. wrong definition in parameter.ini file)
         for key, value in parameters.items():
             if not value:
@@ -677,13 +674,12 @@ def getExternalRuns(parameterfilepath, external):
         # construct run information with one set of parameters (parameter.ini will be created in target directory when the setup
         # is executed), one set of command line options (e.g. mpirun information) and the info of how many times a parameter is
         # varied under the variable 'digits'
-        run = ExternalRun(parameters, parameterfilepath, external, i, digits)
+        run = ExternalRun(parameters, parameterfilepath, external, i+1, digits)
 
         # check if the run cannot be performed due to problems encountered when setting up the folder (e.g. not all files could
         # be create or copied to the target directory)
         if not run.skip:
             externalruns.append(run)  # add/append the run to the list of externalruns
-        i += 1
     return externalruns
 
 
@@ -889,7 +885,6 @@ class Run(OutputDirectory, ExternalCommand):
 def getRuns(path, command_line):
     """Get all combinations in 'parameter.ini'"""
     runs = []
-    i = 1
     # get combis : for each run a combination of parameters is stored in a dict containing a [key]-[value] pairs
     #              combis contains multiple dicts 'OrderedDict'
     #              example for a key = 'N' and its value = '5' for polynomial degree of 5
@@ -897,7 +892,7 @@ def getRuns(path, command_line):
     #              example in parameter.ini: N = 1,2,3 then digits would contain OrderedDict([('N', 2),...) for 0,1,2 = 3 different
     #              values for N)
     combis, digits = combinations.getCombinations(path, CheckForMultipleKeys=True)  # path to parameter.ini (source)
-    for parameters in combis:
+    for i, parameters in enumerate(combis):
         # check each [key] for empty [value] (e.g. wrong definition in parameter.ini file)
         for key, value in list(parameters.items()):
             if not value:
@@ -905,12 +900,11 @@ def getRuns(path, command_line):
         # construct run information with one set of parameters (parameter.ini will be created in target directory when the setup
         # is executed), one set of command line options (e.g. mpirun information) and the info of how many times a parameter is
         # varied under the variable 'digits'
-        run = Run(parameters, path, command_line, i, digits)
+        run = Run(parameters, path, command_line, i+1, digits)
         # check if the run cannot be performed due to problems encountered when setting up the folder (e.g. not all files could
         # be create or copied to the target directory)
         if not run.skip:
             runs.append(run)  # add/append the run to the list of runs
-        i += 1
     return runs
 
 

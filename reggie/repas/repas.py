@@ -134,8 +134,7 @@ def main():
     # Edit parameter.ini for multiple parameters, subsequently, the reggie will change a set of variables
     #      and produce output which must be collected
     # loop all runs
-    i = 0
-    for combi in combis:
+    for i, combi in enumerate(combis):
         # print setup info
         print(132 * '-')
         for key, value in combi.items():
@@ -149,7 +148,6 @@ def main():
 
         # run the code and repas output
         repas.run(i)
-        i += 1
 
         # save data: check output directory for .pdf and .csv files and rename according to info in 'parameter_rename.ini'
         repas.save_data()

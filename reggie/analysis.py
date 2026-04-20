@@ -2685,9 +2685,8 @@ class Analyze_compare_data_file(Analyze):
                 line = []
                 with open(path, 'r') as csvfile:
                     line_str = csv.reader(csvfile, delimiter=delimiter_loc, quotechar='!')
-                    i = 0
                     header = 0
-                    for row in line_str:
+                    for i, row in enumerate(line_str):
                         try:
                             # This will fail for header lines, but not for '-0.102704038304E-10, 0.190378371853E-10,-0.299883576917E+10'
                             line = np.array([float(x) for x in row])
@@ -2698,8 +2697,7 @@ class Analyze_compare_data_file(Analyze):
                             except Exception:
                                 header += 1
                                 header_line = row
-                        i += 1
-                        if i == line_loc:
+                        if (i+1) == line_loc:
                             print(tools.yellow(str(i)), end=' ')  # skip line break
                             break
                     line_len = len(line)
