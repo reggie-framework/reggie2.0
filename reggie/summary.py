@@ -18,6 +18,7 @@ import collections
 from reggie import check
 from reggie import tools
 from reggie.outputdirectory import OutputDirectory
+from itertools import starmap
 
 
 def StartsWithCMD(pathSplit, iDir):
@@ -157,7 +158,7 @@ def SummaryOfErrors(builds, args):
                         str_MPI_old = run.output_strings["MPI"]
                     # 3.2.2 print the run parameters, except the inner most (this one is displayed in # 3.2.3)
                     paramsWithMultipleValues = [item for item in list(run.parameters.items())[1:] if run.digits[item[0]] > 0]
-                    param_str = ", ".join(["{}={}".format(*item) for item in paramsWithMultipleValues])  # skip first index
+                    param_str = ", ".join(list(starmap("{}={}".format, paramsWithMultipleValues)))  # skip first index
                     restart_file = command_line.parameters.get('restart_file', None)
                     if not param_str_old.startswith(param_str) or len(param_str_old) == 0:  # Only print when the parameter set changes
                         if restart_file and not run.restart_file_used and restart_file != restart_file_old:  # Add restart file once
