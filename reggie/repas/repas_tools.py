@@ -61,19 +61,19 @@ class Case(ExternalCommand):
         self.names_file = os.path.join(cwd, names_file)
         # check if file exists
         if not os.path.exists(self.names_file):
-            print(tools.red("parameter_rename.ini file not found under: '%s'" % self.names_file))
+            print(tools.red("parameter_rename.ini file not found under: '{}'".format(self.names_file)))
             exit(1)
 
         self.names2_file = os.path.join(cwd, names2_file)
         # check if file exists
         if not os.path.exists(self.names2_file):
-            print(tools.red("parameter_change.ini file not found under: '%s'" % self.names2_file))
+            print(tools.red("parameter_change.ini file not found under: '{}'".format(self.names2_file)))
             exit(1)
 
         self.parameter_file = os.path.join(cwd, parameter_file)
         # check if file exists
         if not os.path.exists(self.parameter_file):
-            print(tools.red("parameter.ini file not found under: '%s'" % self.parameter_file))
+            print(tools.red("parameter.ini file not found under: '{}'".format(self.parameter_file)))
             exit(1)
 
         # display used files
@@ -85,11 +85,11 @@ class Case(ExternalCommand):
 
     def create(self, combi, digits):
         # copy original parameter.ini file to backup parameter_backup.ini file
-        os.system("cp %s parameter_backup.ini" % self.parameter_file)
+        os.system("cp {} parameter_backup.ini".format(self.parameter_file))
 
         # create temorary parameter_tmp.ini file which will be edited
         tmp_file_name = "parameter_tmp.ini"
-        os.system("cp %s %s" % (self.parameter_file, tmp_file_name))  # mv parameter file to tmp file
+        os.system("cp {} {}".format(self.parameter_file, tmp_file_name))  # mv parameter file to tmp file
 
         # check each line; if a changable parameter is found, set the current key/value pair in the combi
         for line in fileinput.input('parameter_tmp.ini', inplace=True):
@@ -97,13 +97,13 @@ class Case(ExternalCommand):
             for key, value in combi.items():
                 if digits[key] >= 0:
                     if line.startswith(key):
-                        print("%s = %s" % (key, value))
+                        print("{} = {}".format(key, value))
                         line_written = True
             if not line_written:
                 print(line.strip())
 
         # copy temorary parameter_tmp.ini to original file
-        os.system("mv %s %s" % (tmp_file_name, self.parameter_file))  # mv tmp file to parameter file
+        os.system("mv {} {}".format(tmp_file_name, self.parameter_file))  # mv tmp file to parameter file
 
     def names(self):
         # read combinations in 'parameter.ini' for renaming the results
@@ -115,20 +115,20 @@ class Case(ExternalCommand):
         logging.getLogger('logger').debug(tools.yellow('=' * 132))
         logging.getLogger('logger').debug("Creating output name:")
         if not os.path.exists(self.names_file):
-            print(tools.red("parameter_rename.ini file not found under: '%s'" % self.names_file))
+            print(tools.red("parameter_rename.ini file not found under: '{}'".format(self.names_file)))
             exit(1)
         options_names, exclusions, noCrossCombinations = readKeyValueFile(self.names_file)
         suffix = ''
         for option in options_names:
-            logging.getLogger('logger').debug("option.name=%s" % str(option.name))
+            logging.getLogger('logger').debug("option.name={}".format(str(option.name)))
             found, number = isKeyOf(combis[0], option.name)
             if found:
-                logging.getLogger('logger').debug(str(option.name) + " = " + tools.blue(str(found)) + " (%s)" % combis[0][option.name])
-                suffix += "_" + str(option.values[0]) + "%s" % (combis[0][option.name])
+                logging.getLogger('logger').debug(str(option.name) + " = " + tools.blue(str(found)) + " ({})".format(combis[0][option.name]))
+                suffix += "_" + str(option.values[0]) + "{}".format(combis[0][option.name])
             else:
                 print(str(option.name) + " = " + tools.red(str(found)) + " (NOT FOUND!)")
 
-        print("Name=[%s]" % tools.red(suffix))
+        print("Name=[{}]".format(tools.red(suffix)))
         logging.getLogger('logger').debug(tools.yellow('=' * 132))
         logging.getLogger('logger').debug("")
         logging.getLogger('logger').debug("")
@@ -138,7 +138,7 @@ class Case(ExternalCommand):
 
     def run(self, i):
         try:
-            s = "cmd=%s" % self.command
+            s = "cmd={}".format(self.command)
             if self.execute_cmd(self.command, self.target_directory, string_info=s) != 0:  # use uncolored string for cmake
                 self.failed = True
         except Exception:  # this fails, if the supplied command line is corrupted
@@ -150,14 +150,14 @@ class Case(ExternalCommand):
             self.nErrors += 1
 
         # move the std.out file
-        old_std = os.path.join(self.target_directory, 'std.out')
-        new_std = os.path.join(self.target_directory, 'std-%04d.out' % i)
+        old_std = os.path.join(self.target_directory,  'std.out')
+        new_std = os.path.join(self.target_directory, f'std-{i:04d}')
         if os.path.exists(os.path.abspath(old_std)):  # check if file exists
             os.rename(old_std, new_std)
 
         # move the err.out file
-        old_err = os.path.join(self.target_directory, 'std.err')
-        new_err = os.path.join(self.target_directory, 'std-%04d.err' % i)
+        old_err = os.path.join(self.target_directory,  'std.err')
+        new_err = os.path.join(self.target_directory, f'std-{i:04d}.err')
         if os.path.exists(os.path.abspath(old_err)):  # check if file exists
             os.rename(old_err, new_err)
 
@@ -177,7 +177,7 @@ class Case(ExternalCommand):
                     continue
                 for file in os.listdir(folder_path):
                     # create results sub-directory if it is non-existent
-                    self.results_sub = "results/%s" % folder + self.suffix
+                    self.results_sub = "results/{}".format(folder) + self.suffix
                     if not os.path.exists(self.results_sub):
                         tools.create_folder(self.results_sub)
                     file_path = os.path.join(folder_path, file)
@@ -236,7 +236,7 @@ def finalize(start, run_errors):
     else:
         print("")
 
-    print("Number of run     errors: %d" % run_errors)
+    print(f"Number of run     errors: {run_errors:d}")
 
     print('=' * 132 + bcolors.ENDC)
     exit(return_code)

@@ -74,7 +74,7 @@ def readValueFromFile(filename, key):
     found = os.path.exists(filename)  # check if directory exists
     if not found:
         # raise getCombinationException(filename) # file not found
-        raise Exception(tools.red("getCombination failed. file '%s' not found." % filename))
+        raise Exception(tools.red("getCombination failed. file '{}' not found.".format(filename)))
 
     # 1. read options and exclusions from the file
     currentValue = None
@@ -114,7 +114,7 @@ def readKeyValueFile(filename):
     found = os.path.exists(filename)  # check if directory exists
     if not found :
         #  Raise getCombinationException(filename) # file not found
-        raise Exception(tools.red("getCombination failed. file '%s' not found." % filename))
+        raise Exception(tools.red("getCombination failed. file '{}' not found.".format(filename)))
 
     options = []                               # list of all options
     exclusions = []                            # list of all exclusions
@@ -175,7 +175,7 @@ def getCombinations(filename, CheckForMultipleKeys=False, OverrideOptionKey=None
 
     # 1.4   Check if a options[].values (key in the dict) is to be overridden (removes all other occurrences too!)
     if OverrideOptionKey and OverrideOptionValue:
-        print(tools.yellow("Setting all options for: %s=[%s]" % (OverrideOptionKey, OverrideOptionValue)))
+        print(tools.yellow("Setting all options for: {}=[{}]".format(OverrideOptionKey, OverrideOptionValue)))
 
         # find the key/value pair in the options and replace the key/value + re-sort the list
         option_not_found = True
@@ -184,7 +184,7 @@ def getCombinations(filename, CheckForMultipleKeys=False, OverrideOptionKey=None
                 options[i].values = [OverrideOptionValue]
                 option_not_found = False
         if option_not_found:
-            raise Exception(tools.red("Trying to set %s = [%s], but %s was not found in the list." % (OverrideOptionKey, OverrideOptionValue, OverrideOptionKey)))
+            raise Exception(tools.red("Trying to set {} = [{}], but {} was not found in the list.".format(OverrideOptionKey, OverrideOptionValue, OverrideOptionKey)))
 
         options.sort(key=lambda option: len(option.values), reverse=True)  # sort list in order to have the most varying option at the beginning
 
@@ -232,14 +232,14 @@ def getCombinations(filename, CheckForMultipleKeys=False, OverrideOptionKey=None
         option.base = NumOfCombinationsTotal  # save total  number of combinations of all options before this option
         NumOfCombinationsTotal = NumOfCombinationsTotal * len(option.values)
 
-    logging.getLogger('logger').debug("  Total number of combinations for '%s' = %d" % (filename, NumOfCombinationsTotal))
+    logging.getLogger('logger').debug(f"  Total number of combinations for '{filename:s}' = {NumOfCombinationsTotal:d}")
 
     # Maximum number of combinations BEFORE removing the invalid ones (if this value is to be further increased,
     # maybe think about re-writing the code and remove invalid combinations from the start)
     maxCombinations = int(1e5)
 
     if NumOfCombinationsTotal > maxCombinations:
-        raise Exception(tools.red("%s is more than %s combinations in parameter.ini which is not allowed!" % (NumOfCombinationsTotal, maxCombinations)))
+        raise Exception(tools.red("{} is more than {} combinations in parameter.ini which is not allowed!".format(NumOfCombinationsTotal, maxCombinations)))
 
     digits = None
     # 2.2 build all valid combinations (all that do not match any exclusion)
@@ -305,7 +305,7 @@ def getCombinations(filename, CheckForMultipleKeys=False, OverrideOptionKey=None
         for noCrossCombination in noCrossCombinations:
             # Check if the parameter exists in the list
             if digits.get(noCrossCombination[0], None) is None:
-                print(tools.red("nocrosscombination [%s] not found in list of parameters given in [%s].\nOnly parameters that are read can be considered for nocrosscombination." % (noCrossCombination[0], filename)))
+                print(tools.red("nocrosscombination [{}] not found in list of parameters given in [{}].\nOnly parameters that are read can be considered for nocrosscombination.".format(noCrossCombination[0], filename)))
                 exit(1)
 
             # Check all noCrossCombinations and skip them is they already were added to the list
@@ -320,7 +320,7 @@ def getCombinations(filename, CheckForMultipleKeys=False, OverrideOptionKey=None
         # add valid combination
         combinations.append(combination)
 
-    logging.getLogger('logger').debug("  Number of valid combinations = %d" % len(combinations))
+    logging.getLogger('logger').debug(f"  Number of valid combinations = {len(combinations):d}")
     return combinations, digits
 
 
@@ -330,9 +330,9 @@ def writeCombinationsToFile(combinations, path):
         for key, value in combinations.items():
             # check if multiple parameters with the exact same name are used within parameter.ini (examples are BoundaryName or RefState)
             if "MULTIPLE_KEY:" in key:
-                f.write("  ! %s=%s\n" % (key, value))  # write comment into file
+                f.write("  ! {}={}\n".format(key, value))  # write comment into file
                 for item in value:  # write all multiple occurring values of the multiple key without "MULTIPLE_KEY:" to file
-                    f.write("%s=%s\n" % (key[13:], item))  # write key/value into file
+                    f.write("{}={}\n".format(key[13:], item))  # write key/value into file
             else:
                 # for parameters with value 'crosscombinations' in the key-value pair, replace it with the value from 'crosscombinations'
                 #
@@ -342,9 +342,9 @@ def writeCombinationsToFile(combinations, path):
                 #
                 # this results in using 1,2,3,4,5 for both "N" and "NGeo" (as an example)
                 if value == 'crosscombinations':
-                    f.write("%s=%s\n" % (key, combinations.get('crosscombinations')))
+                    f.write("{}={}\n".format(key, combinations.get('crosscombinations')))
                 else:
-                    f.write("%s=%s\n" % (key, value))
+                    f.write("{}={}\n".format(key, value))
 
 
 # class getCombinationException(Exception) : # Exception for missing files, e.g., command_line.ini

@@ -91,7 +91,7 @@ def main():
 
     if re.search('^linux', platform):
         hostname = socket.gethostname()
-        print("platform: %s, hostname: %s" % (platform, hostname))
+        print("platform: {}, hostname: {}".format(platform, hostname))
         if re.search('^mom[0-9]+$', hostname):
             print(tools.yellow('Automatic detection of hlrs system: Assuming aprun is used and setting args.hlrs = True'))
             args.hlrs = True
@@ -122,7 +122,7 @@ def main():
         if os.path.isdir(args.case):
             os.chdir(args.case)
         else:
-            raise Exception('Supplied case directory is not correctly defined! -c [%s]' % args.case)
+            raise Exception('Supplied case directory is not correctly defined! -c [{}]'.format(args.case))
 
     if args.dummy:
         open('parameter_rename.ini', 'a').close()
@@ -142,7 +142,7 @@ def main():
         # print setup info
         print(132 * '-')
         for key, value in combi.items():
-            print("[%25s=%25s] digit=%3s" % (key, value, digits[key]))
+            print(f"[{key:25s}={value:25s}] digit={digits[key]:3s}")
 
         # create parameter file for current combi
         repas.create(combi, digits)

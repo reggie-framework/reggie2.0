@@ -30,7 +30,7 @@ class OutputDirectory:
 
         # numbering of directory (if a number is supplied)
         if number >= 0:
-            self.target_directory = os.path.join(parent_dir, "%s_%04d" % (name, number))
+            self.target_directory = os.path.join(parent_dir, f"{name:s}_{number:04d}")
         else:
             self.target_directory = os.path.join(parent_dir, name)
 
