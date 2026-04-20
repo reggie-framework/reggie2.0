@@ -1476,7 +1476,7 @@ class PerformCheck:
                         runs_successful = [run for run in command_line.runs if run.successful]
                         if runs_successful:  # do analysis only if runs_successful is not empty
                             for analyze in example.analyzes:
-                                if isinstance(analyze, Clean_up_files) or isinstance(analyze, Analyze_compare_across_commands):
+                                if isinstance(analyze, (Clean_up_files, Analyze_compare_across_commands)):
                                     # skip because either already called in the "run" loop under 4.2 or called later under cross-command comparisons in 7.
                                     continue
                                 # Set the restart file index in case of one diff per restart file (from command line)
