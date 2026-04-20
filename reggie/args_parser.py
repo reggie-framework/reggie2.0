@@ -20,11 +20,11 @@ from reggie import tools
 from reggie import check
 from reggie.outputdirectory import OutputDirectory
 
-try:
-    # Python 2.7
-    import commands
-except Exception:
-    pass
+# try:
+#     # Python 2.7
+#     import commands
+# except Exception:
+#     pass
 
 
 def getMaxCPUCores():
@@ -234,11 +234,12 @@ def getArgsAndBuilds():
     args.detectedMPICH = False
     try:
         if args.MPIexe == 'mpirun':
-            try:
-                status, result = subprocess.getstatusoutput("%s -h | grep -i mpich" % args.MPIexe)
-            except Exception:
-                # Fallback for python2.7
-                status, result = commands.getstatusoutput("%s -h | grep -i mpich" % args.MPIexe)
+            status, result = subprocess.getstatusoutput("{} -h | grep -i mpich".format(args.MPIexe))
+            # try:
+            #     status, result = subprocess.getstatusoutput("{} -h | grep -i mpich".format(args.MPIexe))
+            # except Exception:
+            #     # Fallback for python2.7
+            #     status, result = commands.getstatusoutput("{} -h | grep -i mpich".format(args.MPIexe))
             if len(result) > 0 and status == 0:
                 args.detectedMPICH = True
     except Exception:
