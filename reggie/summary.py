@@ -68,8 +68,8 @@ def SummaryOfErrors(builds, args):
                     # Check number of variations in parameter list(run.digits.items())[0][1]
                     restart_file = command_line.parameters.get('restart_file', None)
                     run.restart_file_used = False
-                    if list(run.digits.items())[0][1] > 0:
-                        run.output_strings['options'] += "{}={}".format(*list(run.parameters.items())[0])  # print parameter and value as [parameter]=[value]
+                    if next(iter(run.digits.items()))[1] > 0:
+                        run.output_strings['options'] += "{}={}".format(*next(iter(run.parameters.items())))  # print parameter and value as [parameter]=[value]
                     elif restart_file:  # if no parameter is varied, check if the restart file is used
                         run.restart_file_used = True
                         if restart_file != restart_file_old:  # only display once
