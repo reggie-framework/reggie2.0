@@ -463,13 +463,13 @@ def getExternals(path, example, build):
     for iCombi, combi in enumerate(combis):
         # Check directory
         externaldirectory = combi.get('externaldirectory', None)
-        if not externaldirectory or not os.path.exists(os.path.join(example.source_directory, externaldirectory)):  # string is or empty and path does not exist
-            if not externaldirectory.endswith('.ini'):
-                s = tools.red(f'getExternals: "externaldirectory" is empty or the path [{os.path.join(example.source_directory, externaldirectory)}] does not exist')
-                externals_errors.append(s)
-                print(s)
-                ExternalRun.total_errors += 1  # add error if externalrun fails
-                continue
+        if (not externaldirectory or not os.path.exists(os.path.join(example.source_directory, externaldirectory))) and \
+            not externaldirectory.endswith('.ini'):  # string is or empty and path does not exist
+            s = tools.red(f'getExternals: "externaldirectory" is empty or the path [{os.path.join(example.source_directory, externaldirectory)}] does not exist')
+            externals_errors.append(s)
+            print(s)
+            ExternalRun.total_errors += 1  # add error if externalrun fails
+            continue
 
         # Check binary
         binary_found = False  # default
@@ -601,16 +601,15 @@ class ExternalRun(OutputDirectory, ExternalCommand):
         if cmd_pre_execute:
             cmd_pre = cmd_pre_execute.split()
             s = "Running [{}] ...".format(" ".join(cmd_pre))
-            if args.meshesdir:
-                # if meshes are reused the 'cp' command needs to be adjusted to handle the symbolic links correctly
-                if 'cp' in cmd_pre:
-                    copy_index = cmd_pre.index('cp')
-                    if re.match(r'^-[a-zA-Z]+$', cmd_pre[copy_index + 1]) and 'L' not in cmd_pre[copy_index + 1]:
-                        # add -L to the options of the copy command
-                        cmd_pre[copy_index + 1] = cmd_pre[copy_index + 1] + 'L'
-                    else:
-                        # if not options are given, add -L to the copy command
-                        cmd_pre.insert(copy_index + 1, '-L')
+            # if meshes are reused the 'cp' command needs to be adjusted to handle the symbolic links correctly
+            if args.meshesdir and 'cp' in cmd_pre:
+                copy_index = cmd_pre.index('cp')
+                if re.match(r'^-[a-zA-Z]+$', cmd_pre[copy_index + 1]) and 'L' not in cmd_pre[copy_index + 1]:
+                    # add -L to the options of the copy command
+                    cmd_pre[copy_index + 1] = cmd_pre[copy_index + 1] + 'L'
+                else:
+                    # if not options are given, add -L to the copy command
+                    cmd_pre.insert(copy_index + 1, '-L')
             self.execute_cmd(cmd_pre, external.directory, name='pre-exec', string_info=tools.indent(s, 3))  # run something
 
         if self.return_code != 0:
@@ -949,11 +948,10 @@ class PerformCheck:
                 # we use the self.Matched_Generator_Name to get the corresponding file ending of our MeshGenerator from MeshGeneration
                 if file.endswith(self.MeshGeneration[self.Matched_Generator_Name]):
                     full_path = os.path.join(self.meshes_dir_path, file)
-                    if os.path.isfile(full_path):
-                        if full_path not in self.created_mesh_files.values():
-                            dict_identifier = dict_identifier + f'{self.externalrun_count}'
-                            # save directory where mesh is stored for current combination to set symbolic link in next run/command_line run
-                            self.created_mesh_files[dict_identifier] = os.path.join(self.meshes_dir_path, file)
+                    if os.path.isfile(full_path) and full_path not in self.created_mesh_files.values():
+                        dict_identifier = dict_identifier + f'{self.externalrun_count}'
+                        # save directory where mesh is stored for current combination to set symbolic link in next run/command_line run
+                        self.created_mesh_files[dict_identifier] = os.path.join(self.meshes_dir_path, file)
 
         # neither the first command_line or run so the mesh should have been created already, so we create the identifier to check our dict
         dict_identifier = f'{self.external_count}' + f'{self.externalparameterfile_count}' + f'{self.externalrun_count}'

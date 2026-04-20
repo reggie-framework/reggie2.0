@@ -95,10 +95,9 @@ class Case(ExternalCommand):
         for line in fileinput.input('parameter_tmp.ini', inplace=True):
             line_written = False
             for key, value in combi.items():
-                if digits[key] >= 0:
-                    if line.startswith(key):
-                        print(f"{key} = {value}")
-                        line_written = True
+                if digits[key] >= 0 and line.startswith(key):
+                    print(f"{key} = {value}")
+                    line_written = True
             if not line_written:
                 print(line.strip())
 
