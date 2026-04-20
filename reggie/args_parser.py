@@ -166,7 +166,7 @@ def getArgsAndBuilds():
     # Check OS
     if re.search('^linux', platform):
         hostname = socket.gethostname()
-        print("platform: {}, hostname: {}".format(platform, hostname))
+        print(f"platform: {platform}, hostname: {hostname}")
         if re.search('^mom[0-9]+$', hostname):
             print(tools.yellow('Automatic detection of hlrs system: Assuming aprun is used and setting args.hlrs = True'))
             args.hlrs = True
@@ -181,8 +181,8 @@ def getArgsAndBuilds():
         reggieDir = os.path.dirname(os.path.realpath(__file__))
         args.basedir = os.path.join(reggieDir, 'dummy_basedir')
         args.check = os.path.join(reggieDir, 'dummy_checks/test')
-        print("Basedir directory switched to '{}'".format(args.basedir))
-        print("Check   directory switched to '{}'".format(args.check))
+        print(f"Basedir directory switched to '{args.basedir}'")
+        print(f"Check   directory switched to '{args.check}'")
     else:
         # For real reggie-execution:
         # Setup basedir (containing CMakeLists.txt) by searching upward from current working directory
@@ -197,19 +197,19 @@ def getArgsAndBuilds():
 
         # Check if directory exists
         if not os.path.exists(args.check):
-            print(tools.red("Check directory not found: '{}'".format(args.check)))
+            print(tools.red(f"Check directory not found: '{args.check}'"))
             exit(1)
         else:
             # Check if file or link path was supplied
             if os.path.isfile(args.check):
-                print(tools.red("Check directory supplied is a file: '{}'. Please supply a directory path".format(args.check)))
+                print(tools.red(f"Check directory supplied is a file: '{args.check}'. Please supply a directory path"))
                 exit(1)
             # Check if directory path was supplied
             elif os.path.isdir(args.check):
                 pass
             # Check rest
             else:
-                print(tools.red("Check directory supplied is not a directory path: '{}'. Please supply a directory path".format(args.check)))
+                print(tools.red(f"Check directory supplied is not a directory path: '{args.check}'. Please supply a directory path"))
                 exit(1)
 
     # delete the building directory when [carryon = False] and [run = False] before getBuilds is called
@@ -222,7 +222,7 @@ def getArgsAndBuilds():
         builds = check.getBuilds(args.basedir, args.check, args.compiletype, args.singledir, args.coverage)
     else:
         if not os.path.exists(args.exe):  # check if executable exists
-            print(tools.red("No executable found under '{}'".format(args.exe)))
+            print(tools.red(f"No executable found under '{args.exe}'"))
             exit(1)
         else:
             builds = [check.Standalone(args.exe, args.check)]  # set builds list to contain only the supplied executable
@@ -234,7 +234,7 @@ def getArgsAndBuilds():
     args.detectedMPICH = False
     try:
         if args.MPIexe == 'mpirun':
-            status, result = subprocess.getstatusoutput("{} -h | grep -i mpich".format(args.MPIexe))
+            status, result = subprocess.getstatusoutput(f"{args.MPIexe} -h | grep -i mpich")
             # try:
             #     status, result = subprocess.getstatusoutput("{} -h | grep -i mpich".format(args.MPIexe))
             # except Exception:
@@ -249,7 +249,7 @@ def getArgsAndBuilds():
     # Set maximum number of processes/cores for mpich as over-subscription results in a massive performance drop
     if args.detectedMPICH:
         args.MaxCores = getMaxCPUCores()
-        print(tools.yellow('WARNING: MPICH detected, which limits the total number of processes that can be used to {} as over-subscription results in a massive performance drop'.format(args.MaxCores)))
+        print(tools.yellow(f'WARNING: MPICH detected, which limits the total number of processes that can be used to {args.MaxCores} as over-subscription results in a massive performance drop'))
 
     if args.run:
         print("args.run -> skip building")

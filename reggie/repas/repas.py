@@ -91,7 +91,7 @@ def main():
 
     if re.search('^linux', platform):
         hostname = socket.gethostname()
-        print("platform: {}, hostname: {}".format(platform, hostname))
+        print(f"platform: {platform}, hostname: {hostname}")
         if re.search('^mom[0-9]+$', hostname):
             print(tools.yellow('Automatic detection of hlrs system: Assuming aprun is used and setting args.hlrs = True'))
             args.hlrs = True
@@ -119,7 +119,7 @@ def main():
         if os.path.isdir(args.case):
             os.chdir(args.case)
         else:
-            raise Exception('Supplied case directory is not correctly defined! -c [{}]'.format(args.case))
+            raise Exception(f'Supplied case directory is not correctly defined! -c [{args.case}]')
 
     if args.dummy:
         open('parameter_rename.ini', 'a').close()

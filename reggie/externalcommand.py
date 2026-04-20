@@ -175,16 +175,16 @@ class ExternalCommand:
             # Note that f-strings in print statements, e.g. print(f"...."), only work in python 3
             # print(f"\033[F\033[{ncols}G "+str(self.result)+" [%.2f sec]" % self.walltime)
             ncols = len(string_info) + 1
-            print("\033[F\033[{}G ".format(ncols) + str(self.result) + " [{:.2f} sec]".format(self.walltime))
+            print(f"\033[F\033[{ncols}G " + str(self.result) + f" [{self.walltime:.2f} sec]")
         else:
-            print(self.result + " [{:.2f} sec]".format(self.walltime))
+            print(self.result + f" [{self.walltime:.2f} sec]")
 
         # Display error information if the code has failed to run: the last 15 lines of std.out and the last 15 lines of std.err
         if log.getEffectiveLevel() != logging.DEBUG and displayOnFailure and self.return_code != 0:
             for line in self.stdout[-15:]:
-                print(tools.red("{}".format(line.strip())))
+                print(tools.red(f"{line.strip()}"))
             for line in self.stderr[-15:]:
-                print(tools.red("{}".format(line.strip())))
+                print(tools.red(f"{line.strip()}"))
 
         return self.return_code
 

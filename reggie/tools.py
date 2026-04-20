@@ -130,13 +130,13 @@ def find_basedir(basedir):
             break
 
     if not found:
-        raise Exception("No basedir found. Started searching for 'CMakeLists.txt' in '{}'".format(os.getcwd()))
+        raise Exception(f"No basedir found. Started searching for 'CMakeLists.txt' in '{os.getcwd()}'")
 
     return basedir
 
 
 def remove_folder(path):
-    print("deleting folder '{}'".format(path))
+    print(f"deleting folder '{path}'")
     shutil.rmtree(path, ignore_errors=True)
     # shutil.rmtree(path)
 

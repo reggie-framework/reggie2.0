@@ -79,7 +79,7 @@ def SummaryOfErrors(builds, args):
                     # fmt: off
                     run.output_strings['path']    = os.path.relpath(run.target_directory,OutputDirectory.output_dir)
                     run.output_strings['MPI']     = command_line.parameters.get('MPI', '-')
-                    run.output_strings['time']    = "{:2.1f}".format(run.walltime)
+                    run.output_strings['time']    = f"{run.walltime:2.1f}"
                     run.output_strings['Info']    = run.result
                     run.outputMPIyellow = False
                     # fmt: on
@@ -91,9 +91,9 @@ def SummaryOfErrors(builds, args):
                         for iDir, iDirName in enumerate(pathSplit):
                             foundCMD = StartsWithCMD(pathSplit, iDir)
                             if foundCMD:
-                                pathColoured += delimiter + '{}'.format(tools.pink(iDirName))
+                                pathColoured += delimiter + f'{tools.pink(iDirName)}'
                             else:
-                                pathColoured += delimiter + '{}'.format(iDirName)
+                                pathColoured += delimiter + f'{iDirName}'
                             delimiter = '/'
                         run.output_strings['path'] = pathColoured
                     except Exception:
@@ -179,7 +179,7 @@ def SummaryOfErrors(builds, args):
                         elif key == "MPI" and any([args.noMPI, args.noMPIautomatic]):
                             print(tools.yellow("1"), end=' ')  # skip linebreak
                         elif key == "MPI" and run.outputMPIyellow:
-                            print(tools.yellow('{}'.format(run.output_strings[key].ljust(value))), end=' ')  # skip linebreak
+                            print(tools.yellow(f'{run.output_strings[key].ljust(value)}'), end=' ')  # skip linebreak
                         else:
                             print(run.output_strings[key].ljust(value), end=' ')  # skip linebreak
                         print(spacing * ' ', end=' ')  # skip linebreak

@@ -62,19 +62,19 @@ class Case(ExternalCommand):
         self.names_file = os.path.join(cwd, names_file)
         # check if file exists
         if not os.path.exists(self.names_file):
-            print(tools.red("parameter_rename.ini file not found under: '{}'".format(self.names_file)))
+            print(tools.red(f"parameter_rename.ini file not found under: '{self.names_file}'"))
             sys.exit(1)
 
         self.names2_file = os.path.join(cwd, names2_file)
         # check if file exists
         if not os.path.exists(self.names2_file):
-            print(tools.red("parameter_change.ini file not found under: '{}'".format(self.names2_file)))
+            print(tools.red(f"parameter_change.ini file not found under: '{self.names2_file}'"))
             sys.exit(1)
 
         self.parameter_file = os.path.join(cwd, parameter_file)
         # check if file exists
         if not os.path.exists(self.parameter_file):
-            print(tools.red("parameter.ini file not found under: '{}'".format(self.parameter_file)))
+            print(tools.red(f"parameter.ini file not found under: '{self.parameter_file}'"))
             sys.exit(1)
 
         # display used files
@@ -86,11 +86,11 @@ class Case(ExternalCommand):
 
     def create(self, combi, digits):
         # copy original parameter.ini file to backup parameter_backup.ini file
-        os.system("cp {} parameter_backup.ini".format(self.parameter_file))
+        os.system(f"cp {self.parameter_file} parameter_backup.ini")
 
         # create temorary parameter_tmp.ini file which will be edited
         tmp_file_name = "parameter_tmp.ini"
-        os.system("cp {} {}".format(self.parameter_file, tmp_file_name))  # mv parameter file to tmp file
+        os.system(f"cp {self.parameter_file} {tmp_file_name}")  # mv parameter file to tmp file
 
         # check each line; if a changable parameter is found, set the current key/value pair in the combi
         for line in fileinput.input('parameter_tmp.ini', inplace=True):
@@ -98,13 +98,13 @@ class Case(ExternalCommand):
             for key, value in combi.items():
                 if digits[key] >= 0:
                     if line.startswith(key):
-                        print("{} = {}".format(key, value))
+                        print(f"{key} = {value}")
                         line_written = True
             if not line_written:
                 print(line.strip())
 
         # copy temorary parameter_tmp.ini to original file
-        os.system("mv {} {}".format(tmp_file_name, self.parameter_file))  # mv tmp file to parameter file
+        os.system(f"mv {tmp_file_name} {self.parameter_file}")  # mv tmp file to parameter file
 
     def names(self):
         # read combinations in 'parameter.ini' for renaming the results
@@ -116,20 +116,20 @@ class Case(ExternalCommand):
         logging.getLogger('logger').debug(tools.yellow('=' * 132))
         logging.getLogger('logger').debug("Creating output name:")
         if not os.path.exists(self.names_file):
-            print(tools.red("parameter_rename.ini file not found under: '{}'".format(self.names_file)))
+            print(tools.red(f"parameter_rename.ini file not found under: '{self.names_file}'"))
             sys.exit(1)
         options_names, exclusions, noCrossCombinations = readKeyValueFile(self.names_file)
         suffix = ''
         for option in options_names:
-            logging.getLogger('logger').debug("option.name={}".format(str(option.name)))
+            logging.getLogger('logger').debug(f"option.name={str(option.name)}")
             found, number = isKeyOf(combis[0], option.name)
             if found:
-                logging.getLogger('logger').debug(str(option.name) + " = " + tools.blue(str(found)) + " ({})".format(combis[0][option.name]))
-                suffix += "_" + str(option.values[0]) + "{}".format(combis[0][option.name])
+                logging.getLogger('logger').debug(str(option.name) + " = " + tools.blue(str(found)) + f" ({combis[0][option.name]})")
+                suffix += "_" + str(option.values[0]) + f"{combis[0][option.name]}"
             else:
                 print(str(option.name) + " = " + tools.red(str(found)) + " (NOT FOUND!)")
 
-        print("Name=[{}]".format(tools.red(suffix)))
+        print(f"Name=[{tools.red(suffix)}]")
         logging.getLogger('logger').debug(tools.yellow('=' * 132))
         logging.getLogger('logger').debug("")
         logging.getLogger('logger').debug("")
@@ -139,7 +139,7 @@ class Case(ExternalCommand):
 
     def run(self, i):
         try:
-            s = "cmd={}".format(self.command)
+            s = f"cmd={self.command}"
             if self.execute_cmd(self.command, self.target_directory, string_info=s) != 0:  # use uncolored string for cmake
                 self.failed = True
         except Exception:  # this fails, if the supplied command line is corrupted
@@ -178,7 +178,7 @@ class Case(ExternalCommand):
                     continue
                 for file in os.listdir(folder_path):
                     # create results sub-directory if it is non-existent
-                    self.results_sub = "results/{}".format(folder) + self.suffix
+                    self.results_sub = f"results/{folder}" + self.suffix
                     if not os.path.exists(self.results_sub):
                         tools.create_folder(self.results_sub)
                     file_path = os.path.join(folder_path, file)
