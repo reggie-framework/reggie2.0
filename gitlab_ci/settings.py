@@ -10,13 +10,12 @@
 #
 # You should have received a copy of the GNU General Public License along with reggie2.0. If not, see <http://www.gnu.org/licenses/>.
 # ==================================================================================================================================
-# settings.py
 import os
+import sys
 
 
 def init():
-    global absolute_reggie_path
     absolute_reggie_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     if not os.path.exists(absolute_reggie_path):
-        print("Reggie repository not found under: '%s'" % absolute_reggie_path)
-        exit(1)
+        print(f"Reggie repository not found under: '{absolute_reggie_path}'")
+        sys.exit(1)
