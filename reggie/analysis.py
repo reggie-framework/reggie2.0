@@ -113,13 +113,13 @@ def copyReferenceFile(run, path, path_ref_source):
     if not os.path.exists(path):
         s = tools.red("copyReferenceFile: Could not find file=[{}] for copying".format(path))
         print(s)
-        exit(1)
+        sys.exit(1)
 
     # Check whether the destination for copying the file exists
     if not os.path.exists(os.path.dirname(path_ref_source)):
         s = tools.red("copyReferenceFile: Could not find location=[{}] for copying".format(os.path.dirname(path_ref_source)))
         print(s)
-        exit(1)
+        sys.exit(1)
 
     # Copy file and create new reference
     shutil.copy(path, path_ref_source)

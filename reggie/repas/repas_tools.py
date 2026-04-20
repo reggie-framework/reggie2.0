@@ -12,6 +12,7 @@
 # ==================================================================================================================================
 from __future__ import print_function  # required for print() function with line break via "end=' '"
 import os
+import sys
 import fileinput
 from timeit import default_timer as timer
 import logging
@@ -62,19 +63,19 @@ class Case(ExternalCommand):
         # check if file exists
         if not os.path.exists(self.names_file):
             print(tools.red("parameter_rename.ini file not found under: '{}'".format(self.names_file)))
-            exit(1)
+            sys.exit(1)
 
         self.names2_file = os.path.join(cwd, names2_file)
         # check if file exists
         if not os.path.exists(self.names2_file):
             print(tools.red("parameter_change.ini file not found under: '{}'".format(self.names2_file)))
-            exit(1)
+            sys.exit(1)
 
         self.parameter_file = os.path.join(cwd, parameter_file)
         # check if file exists
         if not os.path.exists(self.parameter_file):
             print(tools.red("parameter.ini file not found under: '{}'".format(self.parameter_file)))
-            exit(1)
+            sys.exit(1)
 
         # display used files
         print("Using the following input files")
@@ -116,7 +117,7 @@ class Case(ExternalCommand):
         logging.getLogger('logger').debug("Creating output name:")
         if not os.path.exists(self.names_file):
             print(tools.red("parameter_rename.ini file not found under: '{}'".format(self.names_file)))
-            exit(1)
+            sys.exit(1)
         options_names, exclusions, noCrossCombinations = readKeyValueFile(self.names_file)
         suffix = ''
         for option in options_names:
@@ -239,4 +240,4 @@ def finalize(start, run_errors):
     print(f"Number of run     errors: {run_errors:d}")
 
     print('=' * 132 + bcolors.ENDC)
-    exit(return_code)
+    sys.exit(return_code)

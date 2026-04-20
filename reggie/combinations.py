@@ -11,6 +11,7 @@
 # You should have received a copy of the GNU General Public License along with reggie2.0. If not, see <http://www.gnu.org/licenses/>.
 # ==================================================================================================================================
 import os
+import sys
 import re
 import logging
 import collections
@@ -228,7 +229,7 @@ def getCombinations(filename, CheckForMultipleKeys=False, OverrideOptionKey=None
                             f'which could lead to some combinations which are not tested! Please add more values or remove {option.name} from noCrossCombinations.'
                         )
                     )
-                    exit(1)
+                    sys.exit(1)
         option.base = NumOfCombinationsTotal  # save total  number of combinations of all options before this option
         NumOfCombinationsTotal = NumOfCombinationsTotal * len(option.values)
 
@@ -306,7 +307,7 @@ def getCombinations(filename, CheckForMultipleKeys=False, OverrideOptionKey=None
             # Check if the parameter exists in the list
             if digits.get(noCrossCombination[0], None) is None:
                 print(tools.red("nocrosscombination [{}] not found in list of parameters given in [{}].\nOnly parameters that are read can be considered for nocrosscombination.".format(noCrossCombination[0], filename)))
-                exit(1)
+                sys.exit(1)
 
             # Check all noCrossCombinations and skip them is they already were added to the list
             if not all([digits[key] == digits[noCrossCombination[0]] for key in noCrossCombination]):

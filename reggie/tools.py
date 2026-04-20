@@ -14,6 +14,7 @@ from __future__ import print_function  # required for print() function with line
 import logging
 import shutil
 import os
+import sys
 from timeit import default_timer as timer  # noqa: F401 imported but unused (kept for performance measurements)
 import time
 
@@ -151,7 +152,7 @@ def create_folder(path):
                 os.makedirs(path)
                 if i > 60:
                     print(red("OutputDirectory() : Tried creating a directory more than 60 times. Stop."))
-                    exit(1)
+                    sys.exit(1)
                 break
             except OSError as e:
                 if e.errno != os.errno.EEXIST:

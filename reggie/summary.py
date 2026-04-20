@@ -13,6 +13,7 @@
 from __future__ import print_function  # required for print() function with line break via "end=' '"
 from timeit import default_timer as timer
 import os
+import sys
 import collections
 
 from reggie import check
@@ -232,4 +233,4 @@ def finalize(start, build_errors, run_errors, external_run_errors, analyze_error
     print(f"Number of analyze       infos: {analyze_infos:d}")
 
     print('=' * 132 + tools.bcolors.ENDC)
-    exit(return_code)
+    sys.exit(return_code)

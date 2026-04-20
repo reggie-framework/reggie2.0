@@ -16,7 +16,7 @@ import logging
 import argparse
 import shutil
 import re
-from sys import platform
+from sys import platform, exit
 import socket
 from timeit import default_timer as timer
 

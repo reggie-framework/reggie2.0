@@ -76,7 +76,7 @@ class ExternalCommand:
         # check that only cmd arguments of type 'list' are supplied to this function
         if not isinstance(cmd, list):
             print(tools.red("cmd must be of type 'list'\ncmd=") + str(cmd) + tools.red(" and type(cmd)="), type(cmd))
-            exit(1)
+            sys.exit(1)
 
         sys.stdout.flush()  # flush output here, because the subprocess will force buffering until it is finished
         log = logging.getLogger('logger')

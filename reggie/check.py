@@ -12,6 +12,7 @@
 # ==================================================================================================================================
 from __future__ import print_function  # required for print() function with line break via "end=' '"
 import os
+import sys
 import re
 import shutil
 import subprocess
@@ -63,7 +64,7 @@ class Build(OutputDirectory, ExternalCommand):
                 binary_name = self.configuration["binary"]
             except Exception:
                 print(tools.red("No 'binary'-option with the name of the binary specified in 'builds.ini'"))
-                exit(1)
+                sys.exit(1)
             self.configuration.pop('binary', None)  # remove binary from config dict
             self.binary_dir = os.path.abspath(os.path.join(self.target_directory))
             self.binary_path = os.path.abspath(os.path.join(self.target_directory, binary_name))
@@ -422,13 +423,13 @@ def copyRestartFile(path, path_target):
     if not os.path.exists(path):
         s = tools.red("copyRestartFile: Could not find file=[{}] for copying".format(path))
         print(s)
-        exit(1)
+        sys.exit(1)
 
     # Check whether the destination for copying the file exists
     if not os.path.exists(os.path.dirname(path_target)):
         s = tools.red("copyRestartFile: Could not find location=[{}] for copying".format(os.path.dirname(path_target)))
         print(s)
-        exit(1)
+        sys.exit(1)
 
     # Copy file and create new reference
     shutil.copy(path, path_target)
@@ -1009,7 +1010,7 @@ class PerformCheck:
                     self.coverage_output_cobertura = True
             else:
                 print(tools.red("Invalid value for --coverage: '{}'. Use any combination of 1, 2 or 0.".format(args.coverage)))
-                exit(1)
+                sys.exit(1)
             args.coverage = True
 
         # create directory to store coverage data (one file per build), if executed locally the coverage directory is created in the current directory, but
@@ -1056,7 +1057,7 @@ class PerformCheck:
                     raise Exception("No .gcno files found in coverage_files_dir [{}] or any subdirectories. Please check if the executable is compiled with coverage enabled".format(coverage_files_dir))
             except Exception as e:
                 print("{}".format(tools.red("Error determining source directory of standalone executable: {}".format(e))))
-                exit(1)
+                sys.exit(1)
             # source_files_dir is the directory where the source files are located, it is expected to be the parent directory or at least a subdirectory of the parentdirectory
             self.source_files_dir = os.path.dirname(coverage_files_dir)
         else:
@@ -1067,7 +1068,7 @@ class PerformCheck:
         if not os.path.exists(coverage_files_dir):
             s = tools.red("Coverage data object directory [{}] does not exist".format(coverage_files_dir))
             print(s)
-            exit(1)
+            sys.exit(1)
 
         # try to append /src to the path to exclude other directories, e.g. UnitTests
         src_path = os.path.abspath(os.path.join(self.source_files_dir, 'src'))
@@ -1079,7 +1080,7 @@ class PerformCheck:
         if not os.path.exists(self.source_files_dir):
             s = tools.red("Source files directory [{}] does not exist".format(self.source_files_dir))
             print(s)
-            exit(1)
+            sys.exit(1)
 
         s = tools.indent(tools.green('Combining coverage reports for build: {}'.format(build.target_directory)), 2)
         print(s)
@@ -1259,7 +1260,7 @@ class PerformCheck:
                     s2 = build.configuration.items()
                     s = s1 + '\n' + str(s2)
                     print(s)
-                    exit(1)
+                    sys.exit(1)
 
                 # 1.2    compile the build if args.run is false and the binary is non-existent
                 build.compile(args.buildprocs)
@@ -1316,7 +1317,7 @@ class PerformCheck:
                             if not os.path.exists(database_path):
                                 s = tools.red("command_line.ini: cannot find file=[{}] ".format(database_path))
                                 print(s)
-                                exit(1)
+                                sys.exit(1)
                         # CVAE scattering linking
                         cvae_scattering_cvae = command_line.parameters.get('cvae_scattering', None)
                         if cvae_scattering_cvae is not None:
@@ -1324,7 +1325,7 @@ class PerformCheck:
                             if not os.path.exists(cvae_scattering_cvae):
                                 s = tools.red("command_line.ini: cannot find file=[{}] ".format(cvae_scattering_cvae))
                                 print(s)
-                                exit(1)
+                                sys.exit(1)
 
                         # Get the index of the restart file to append to the analyze
                         iRestartFile = example.restart_file_list.index(command_line.parameters.get('restart_file', None)) if example.restart_file_list is not None else None
@@ -1410,7 +1411,7 @@ class PerformCheck:
                                             if args.stop:
                                                 s = tools.red('Stop on first error (-p, --stop) is activated! Execution (pre) external failed')
                                                 print(s)
-                                                exit(1)
+                                                sys.exit(1)
 
                             if PreprocessingActive:
                                 print(tools.indent(tools.green('Preprocessing: Externals {} finished!'.format(externalbinaries)), 3))
@@ -1423,7 +1424,7 @@ class PerformCheck:
                                 if args.stop:
                                     s = tools.red('Stop on first error (-p, --stop) is activated! Execution of run failed')
                                     print(s)
-                                    exit(1)
+                                    sys.exit(1)
 
                             # (post) externals (1): loop over all externals available in external.ini
                             if run.externals_post is None:
@@ -1470,7 +1471,7 @@ class PerformCheck:
                                             if args.stop:
                                                 s = tools.red('Stop on first error (-p, --stop) is activated! Execution (post) external failed')
                                                 print(s)
-                                                exit(1)
+                                                sys.exit(1)
 
                             if PostprocessingActive:
                                 print(tools.indent(tools.green('Postprocessing: Externals {} finished!'.format(externalbinaries)), 3))
@@ -1497,7 +1498,7 @@ class PerformCheck:
                                 if args.stop and Analyze.total_errors > 0:
                                     s = tools.red('Stop on first error (-p, --stop) is activated! Analysis failed')
                                     print(s)
-                                    exit(1)
+                                    sys.exit(1)
                         else:  # don't delete build folder after all examples/runs
                             remove_build_when_successful = False
 
@@ -1535,7 +1536,7 @@ class PerformCheck:
                                 if args.stop and Analyze.total_errors > 0:
                                     s = tools.red('Stop on first error (-p, --stop) is activated! Analysis failed (cross-command comparisons)')
                                     print(s)
-                                    exit(1)
+                                    sys.exit(1)
 
                 # create coverage report for current build
                 if args.coverage:
@@ -1569,4 +1570,4 @@ class PerformCheck:
 
             print("run 'reggie' with the command line option '-c/--carryon' to skip successful builds.")
             tools.finalize(start, 1, Run.total_errors, Analyze.total_errors, Analyze.total_infos)
-            exit(1)
+            sys.exit(1)
