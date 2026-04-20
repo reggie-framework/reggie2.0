@@ -80,7 +80,7 @@ def readValueFromFile(filename, key):
     # 1. read options and exclusions from the file
     currentValue = None
     with open(filename) as f:
-        for line in f.readlines():                          # iterate over all lines of the file
+        for line in f:                          # iterate over all lines of the file
             line = re.sub(r"\s+", "", line)                 # remove all whitespaces ("\s" is the whitespac symbol)
             line = re.sub(r"\\s", " ", line)                # add new whitespaces for all occurrances of "\s" in the string ("\s" is NOT the whitespace symbol here)
             line = tools.exclude_comments_from_line(line)   # remove comments
@@ -123,7 +123,7 @@ def readKeyValueFile(filename):
 
     # 1. read options and exclusions from the file
     with open(filename) as f :
-        for line in f.readlines() :                             # iterate over all lines of the file
+        for line in f :                             # iterate over all lines of the file
             line = re.sub(r"\s+", "", line)                     # remove all whitespaces ("\s" is the whitespac symbol)
             line = re.sub(r"\\s", " ", line)                    # add new whitespaces for all occurrances of "\s" in the string ("\s" is NOT the whitespace symbol here)
             line = tools.exclude_comments_from_line(line)       # remove comments

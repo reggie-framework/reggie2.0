@@ -546,7 +546,7 @@ class Analyze_L2_file(Analyze):
                 # 1.2.1   Read content of the reference file and store in self.file_data list
                 self.file_data = []
                 with open(path_ref) as f:
-                    for line in f.readlines():  # iterate over all lines of the file
+                    for line in f:  # iterate over all lines of the file
                         self.file_data.append(line)
 
             # 1.2   Read reference L2 errors from self.file_data list

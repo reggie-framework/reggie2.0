@@ -161,7 +161,7 @@ def StandaloneAutomaticMPIDetection(binary_path):
             checkCMAKELine = False
             checklibstaticLine = False
             with open(userblock) as f:
-                for line in f.readlines():  # iterate over all lines of the file
+                for line in f:  # iterate over all lines of the file
                     line = line.rstrip('\n')
 
                     # Only check lines within the "{[( CMAKE )]}" block
@@ -839,7 +839,7 @@ class Run(OutputDirectory, ExternalCommand):
             try:
                 file_name = os.path.join(self.target_directory, 'std.out')
                 with open(file_name) as f:
-                    for line in f.readlines():  # iterate over all lines of the file
+                    for line in f:  # iterate over all lines of the file
                         if 'WRITE STATE TO HDF5 FILE' in line:
                             s = line.rstrip()
                             FileName = re.search(r'\[(.*?)\]', s).group(1)  # search for string within parenthesis [...] and check if that is a file that exists
