@@ -125,8 +125,7 @@ class Build(OutputDirectory, ExternalCommand):
         print('-' * 132)
 
     def __str__(self):
-        s = "BUILD in: " + self.target_directory
-        return s
+        return "BUILD in: " + self.target_directory
 
     def binary_exists(self):
         return os.path.exists(self.binary_path)
@@ -277,8 +276,7 @@ def getBuilds(basedir, source_directory, CMAKE_BUILD_TYPE, singledir, coverage):
     combis, _ = combinations.getCombinations(os.path.join(source_directory, 'builds.ini'), OverrideOptionKey='CMAKE_BUILD_TYPE', OverrideOptionValue=CMAKE_BUILD_TYPE)
 
     # create Builds
-    builds = [Build(basedir, source_directory, b, 0, coverage=coverage) for b in combis] if singledir else [Build(basedir, source_directory, b, i, coverage=coverage) for i, b in enumerate(combis, start=1)]
-    return builds
+    return [Build(basedir, source_directory, b, 0, coverage=coverage) for b in combis] if singledir else [Build(basedir, source_directory, b, i, coverage=coverage) for i, b in enumerate(combis, start=1)]
 
 
 class BuildFailedException(Exception):
