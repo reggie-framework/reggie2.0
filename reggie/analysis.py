@@ -173,7 +173,7 @@ def getAnalyzes(path, example, args):
     # only use matplot lib if the user wants to (can cause problems on some systems causing "system call itnerrupt" errors randomly aborting the program)
     use_matplot_lib = options.get('use_matplot_lib', 'False')
     if pyplot_module_loaded:
-        pyplot_module_loaded = True if use_matplot_lib in ('True', 'true', 't', 'T') else False
+        pyplot_module_loaded = use_matplot_lib in ('True', 'true', 't', 'T')
 
     # 1.3 Get the names of the files (incl. wildcards) which are to be deleted in the anaylsis stage
     clean_up_files = options.get('clean_up_files')
@@ -1540,7 +1540,7 @@ class Analyze_h5diff(Analyze, ExternalCommand):
                     flattened_shape = False
 
                 # Check whether a single variable or the complete dataset shall be compared
-                compare_single_variable = True if var_attribute_loc is not None and var_name_loc is not None else False
+                compare_single_variable = bool(var_attribute_loc is not None and var_name_loc is not None)
 
                 # throw error if they do not coincide in any way and not only one variable is compared (since then the general shape might not matter)
                 if (not equal_shape) and (not compare_single_variable) and (not flattened_shape):  # e.g.: b1.shape = (48, 1, 1, 32)

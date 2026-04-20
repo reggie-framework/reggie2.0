@@ -223,10 +223,10 @@ def StandaloneAutomaticMPIDetection(binary_path):
                                 # Remove leading and trailing white spaces
                                 parameter = parameter.strip()
                                 # Get lower case string and set logical if, finally, the line {[( CMAKE )]} is found
-                                checkCMAKELine = True if parameter.lower() == 'cmake' else False
+                                checkCMAKELine = parameter.lower() == 'cmake'
                                 # Get lower case string and set logical if, finally, the line {[( libpiclasstatic.dir/flags.make )]} is found
                                 parameter = parameter.lower()
-                                checklibstaticLine = True if parameter.startswith('lib') and parameter.endswith('static.dir/flags.make') else False
+                                checklibstaticLine = bool(parameter.startswith('lib') and parameter.endswith('static.dir/flags.make'))
 
     except Exception as e:
         print(tools.red(f"Error checking userblock in StandaloneAutomaticMPIDetection() in check.py:\nError message [{e}]\nThis program, however, will not be terminated!"))
