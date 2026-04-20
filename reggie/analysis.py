@@ -1233,7 +1233,7 @@ class Analyze_h5diff(Analyze, ExternalCommand):
         ExternalCommand.__init__(self)
 
         # Get maximum number of values (from all possible keys)
-        self.nCompares = numbers[max(numbers, key=numbers.get)]
+        self.nCompares = numbers[max(numbers, key=numbers.get)]  # ty:ignore[no-matching-overload]
 
         # Check all numbers and if a key has only 1 number, increase the number to maximum and use the same value for all
         for key, number in numbers.items():
@@ -1917,7 +1917,7 @@ class Analyze_vtudiff(Analyze, ExternalCommand):
         ExternalCommand.__init__(self)
 
         # Get maximum number of values (from all possible keys)
-        self.nCompares = numbers[max(numbers, key=numbers.get)]
+        self.nCompares = numbers[max(numbers, key=numbers.get)]  # ty:ignore[no-matching-overload]
 
         # Check all numbers and if a key has only 1 number, increase the number to maximum and use the same value for all
         for key, number in numbers.items():
@@ -2571,7 +2571,7 @@ class Analyze_compare_data_file(Analyze):
         numbers = {key: len(prm) for key, prm in self.prms.items()}
 
         # Get maximum number of values (from all possible keys)
-        self.nCompares = numbers[max(numbers, key=numbers.get)]
+        self.nCompares = numbers[max(numbers, key=numbers.get)]  # ty:ignore[no-matching-overload]
 
         # Check all numbers and if a key has only 1 number, increase the number to maximum and use the same value for all
         for key, number in numbers.items():
@@ -2960,7 +2960,7 @@ class Analyze_compare_column(Analyze):
         numbers = {key: len(prm) for key, prm in self.prms.items()}
 
         # Get maximum number of values (from all possible keys)
-        self.nCompares = numbers[max(numbers, key=numbers.get)]
+        self.nCompares = numbers[max(numbers, key=numbers.get)]  # ty:ignore[no-matching-overload]
 
         # Get maximum number of runs from the command line
         self.nCommands = len(example.command_lines)
