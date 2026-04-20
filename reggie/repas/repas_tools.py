@@ -120,7 +120,7 @@ class Case(ExternalCommand):
         options_names, _, _ = readKeyValueFile(self.names_file)
         suffix = ''
         for option in options_names:
-            logging.getLogger('logger').debug(f"option.name={str(option.name)}")
+            logging.getLogger('logger').debug(f"option.name={option.name!s}")
             found, _ = isKeyOf(combis[0], option.name)
             if found:
                 logging.getLogger('logger').debug(str(option.name) + " = " + tools.blue(str(found)) + f" ({combis[0][option.name]})")

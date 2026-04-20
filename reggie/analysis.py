@@ -1690,8 +1690,8 @@ class Analyze_h5diff(Analyze, ExternalCommand):
                                         abs_diff = np.abs(real_diffs[i] - real_diffs_ref[i])
                                         rel_diff = abs_diff / np.abs(real_diffs_ref[i]) if np.abs(real_diffs_ref[i]) > 0.0 else 1.0
                                         print(
-                                            tools.red(f"{non_masked_indices[i]:<20} | {str(real_diffs[i]):<45} | {str(real_diffs_ref[i]):<45}")
-                                            + tools.yellow(f" | {str(abs_diff):<20} | {str(rel_diff):<20}")
+                                            tools.red(f"{non_masked_indices[i]:<20} | {real_diffs[i]!s:<45} | {real_diffs_ref[i]!s:<45}")
+                                            + tools.yellow(f" | {abs_diff!s:<20} | {rel_diff!s:<20}")
                                         )
                                     run.analyze_results.append(s)
                                     run.analyze_successful = False
@@ -1749,7 +1749,7 @@ class Analyze_h5diff(Analyze, ExternalCommand):
                                             NbrOfDifferences = int(lastline[:idx])  # get the number of differences that where identified by h5diff
                                             if NbrOfDifferences <= max_differences_loc:
                                                 s = tools.indent(
-                                                    f"{str(lastline)}, but {max_differences_loc} differences are allowed (given by h5diff_max_differences). The h5diff is therefore marked as passed.", 2
+                                                    f"{lastline!s}, but {max_differences_loc} differences are allowed (given by h5diff_max_differences). The h5diff is therefore marked as passed.", 2
                                                 )
                                                 s = tools.purple(s)
                                                 print(s)
@@ -2389,7 +2389,7 @@ class Analyze_vtudiff(Analyze, ExternalCommand):
                                     rel_diff = np.divide(abs_diff, np.abs(ref_val), out=np.zeros_like(abs_diff), where=ref_val != 0)
 
                                     print(
-                                        tools.red(f"{actual_idx:<20} | {str(val):<45} | {str(ref_val):<45}") + tools.yellow(f" | {str(np.round(abs_diff, 6)):<25} | {str(np.round(rel_diff, 6)):<25}")
+                                        tools.red(f"{actual_idx:<20} | {val!s:<45} | {ref_val!s:<45}") + tools.yellow(f" | {np.round(abs_diff, 6)!s:<25} | {np.round(rel_diff, 6)!s:<25}")
                                     )
 
                             offset += size
