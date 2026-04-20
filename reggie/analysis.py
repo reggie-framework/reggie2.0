@@ -673,7 +673,6 @@ class Analyze_Convtest_h(Analyze):
         # fmt: on
 
     def perform(self, runs):
-        global pyplot_module_loaded
         """
         General workflow:
         1.  check if number of successful runs is equal the number of supplied cells
@@ -855,7 +854,6 @@ class Analyze_Convtest_t(Analyze):
         # fmt: off
 
     def perform(self, runs):
-        global pyplot_module_loaded
         """
         General workflow:
         1.  check if number of successful runs is equal the number of supplied timestep_factor/timesteps (only method 2 and 4)
@@ -1055,7 +1053,6 @@ class Analyze_Convtest_p(Analyze):
         # fmt: on
 
     def perform(self, runs):
-        global pyplot_module_loaded
 
         """
         General workflow:
@@ -1291,7 +1288,6 @@ class Analyze_h5diff(Analyze, ExternalCommand):
         self.referencescopy = h5diff.referencescopy
 
     def perform(self, runs):
-        global h5py_module_loaded
         # Check if this analysis can be performed: h5py must be imported
         if not h5py_module_loaded:  # this boolean is set when importing h5py
             print(tools.red('Could not import h5py module. This is required for "Analyze_h5diff". Aborting.'))
@@ -2020,7 +2016,6 @@ class Analyze_vtudiff(Analyze, ExternalCommand):
         return numpy_data, array_names_dims
 
     def perform(self, runs):
-        global vtk_module_loaded
         # Check if this analysis can be performed: vtk must be imported
         if not vtk_module_loaded:  # this boolean is set when importing vtk
             print(tools.red('Could not import vtk module. This is required for "Analyze_vtudiff". Aborting.'))
@@ -2430,7 +2425,6 @@ class Analyze_check_hdf5(Analyze):
         # fmt: on
 
     def perform(self, runs):
-        global h5py_module_loaded
         # check if this analysis can be performed: h5py must be imported
         if not h5py_module_loaded:  # this boolean is set when importing h5py
             print(tools.red('Could not import h5py module. This is required for "Analyze_check_hdf5". Aborting.'))
