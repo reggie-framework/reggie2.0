@@ -90,11 +90,11 @@ class Build(OutputDirectory, ExternalCommand):
         if self.binary_exists():  # if the binary exists, return
             print("skipping")
             return
-        else:  # for build carryon: when a binary is missing remove all examples (re-run all examples)
-            print("removing folder, ", end=' ')  # skip linebreak
-            shutil.rmtree(self.target_directory, ignore_errors=True)
-            os.makedirs(self.target_directory)
-            tools.create_folder(self.target_directory)
+        # for build carryon: when a binary is missing remove all examples (re-run all examples)
+        print("removing folder, ", end=' ')  # skip linebreak
+        shutil.rmtree(self.target_directory, ignore_errors=True)
+        os.makedirs(self.target_directory)
+        tools.create_folder(self.target_directory)
         print("building")
 
         # CMAKE: execute cmd in build directory

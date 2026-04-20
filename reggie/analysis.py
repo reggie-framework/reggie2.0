@@ -1631,12 +1631,10 @@ class Analyze_h5diff(Analyze, ExternalCommand):
                                             if variable_name.lower() in variable_names:
                                                 f.close()
                                                 return list(variable_names).index(variable_name.lower())
-                                            else:
-                                                print(f"Variable name '{variable_name}' not found in dimension names.")
-                                                return None
-                                        else:
-                                            print(f"No '{variable_attribute}' attribute found in dataset '{dataset_path}'.")
+                                            print(f"Variable name '{variable_name}' not found in dimension names.")
                                             return None
+                                        print(f"No '{variable_attribute}' attribute found in dataset '{dataset_path}'.")
+                                        return None
                                     except KeyError:
                                         print(f"Dataset '{dataset_path}' not found in the file.")
                                         return None
@@ -3024,7 +3022,7 @@ class Analyze_compare_column(Analyze):
                 run.analyze_successful = False
                 Analyze.total_errors += 1
             return  # skip the following analysis tests
-        elif self.one_diff_per_run and (self.nCompares != len(runs)) and self.nCompares > 1:
+        if self.one_diff_per_run and (self.nCompares != len(runs)) and self.nCompares > 1:
             s = tools.red(
                 "Number of compare_column tests and runs is inconsistent."
                 + f" Please ensure all options have the same length or set compare_column_one_diff_per_run=F. Nbr. of comparisons: {self.nCompares}, Nbr. of runs: {len(runs)}"
@@ -3244,12 +3242,11 @@ class Analyze_compare_column(Analyze):
                 self.prms["reference_file"][self.iRestartFile],
                 self.index,
             )
-        else:
-            return "compare column data with a reference (e.g. from .csv file): file=[{}] and reference=[{}] and comparison for column {} (the first column starts at 0)".format(
-                self.prms["file"],
-                self.prms["reference_file"],
-                self.index,
-            )
+        return "compare column data with a reference (e.g. from .csv file): file=[{}] and reference=[{}] and comparison for column {} (the first column starts at 0)".format(
+            self.prms["file"],
+            self.prms["reference_file"],
+            self.index,
+        )
 
 
 # ==================================================================================================
