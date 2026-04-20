@@ -107,7 +107,7 @@ class Case(ExternalCommand):
 
     def names(self):
         # read combinations in 'parameter.ini' for renaming the results
-        combis, digits = getCombinations(self.parameter_file, CheckForMultipleKeys=True)
+        combis, _ = getCombinations(self.parameter_file, CheckForMultipleKeys=True)
 
         # set "suffix"
         logging.getLogger('logger').debug("")
@@ -117,11 +117,11 @@ class Case(ExternalCommand):
         if not os.path.exists(self.names_file):
             print(tools.red(f"parameter_rename.ini file not found under: '{self.names_file}'"))
             sys.exit(1)
-        options_names, exclusions, noCrossCombinations = readKeyValueFile(self.names_file)
+        options_names, _, _ = readKeyValueFile(self.names_file)
         suffix = ''
         for option in options_names:
             logging.getLogger('logger').debug(f"option.name={str(option.name)}")
-            found, number = isKeyOf(combis[0], option.name)
+            found, _ = isKeyOf(combis[0], option.name)
             if found:
                 logging.getLogger('logger').debug(str(option.name) + " = " + tools.blue(str(found)) + f" ({combis[0][option.name]})")
                 suffix += "_" + str(option.values[0]) + f"{combis[0][option.name]}"

@@ -274,7 +274,7 @@ def StandaloneAutomaticMPIDetection(binary_path):
 
 
 def getBuilds(basedir, source_directory, CMAKE_BUILD_TYPE, singledir, coverage):
-    combis, digits = combinations.getCombinations(os.path.join(source_directory, 'builds.ini'), OverrideOptionKey='CMAKE_BUILD_TYPE', OverrideOptionValue=CMAKE_BUILD_TYPE)
+    combis, _ = combinations.getCombinations(os.path.join(source_directory, 'builds.ini'), OverrideOptionKey='CMAKE_BUILD_TYPE', OverrideOptionValue=CMAKE_BUILD_TYPE)
 
     # create Builds
     builds = [Build(basedir, source_directory, b, 0, coverage=coverage) for b in combis] if singledir else [Build(basedir, source_directory, b, i, coverage=coverage) for i, b in enumerate(combis, start=1)]
@@ -348,7 +348,7 @@ def getCommand_Lines(path, example, MPIbuilt, MaxCores):
     if not MPIbuilt:
         combis, digits = combinations.getCombinations(path, OverrideOptionKey='MPI', OverrideOptionValue='1')
     else:
-        combis, digits = combinations.getCombinations(path, MaxCores=MaxCores)
+        combis, _ = combinations.getCombinations(path, MaxCores=MaxCores)
 
     for r in combis:
         command_lines.append(Command_Lines(r, example, i))
@@ -458,7 +458,7 @@ def getExternals(path, example, build):
     # Get combinations from externals.ini
     if not os.path.exists(path):
         return externals_pre, externals_post, externals_errors
-    combis, digits = combinations.getCombinations(path)
+    combis, _ = combinations.getCombinations(path)
 
     for iCombi, combi in enumerate(combis):
         # Check directory
@@ -623,7 +623,7 @@ class ExternalRun(OutputDirectory, ExternalCommand):
             print(tools.indent("Cannot run the code: " + s, 2))
         else:
             s = f"Running [{cmdstr}] ..."
-            head, tail = os.path.split(binary_path)
+            _, tail = os.path.split(binary_path)
             # create meshes in separate directory to reuse same meshes with symbolic links, only if meshes_directory is not None and mesh_generator is external
             if meshes_directory is not None and mesh_generator in tail:
                 # copy hopr.ini file to meshes_directory
@@ -833,7 +833,7 @@ class Run(OutputDirectory, ExternalCommand):
         # Copy restart file if required
         if cmd_restart_file and args.restartcopy:
             # 1. Get directory path and filename of the originally required restart file
-            head, tail = os.path.split(cmd_restart_file_abspath)
+            _, tail = os.path.split(cmd_restart_file_abspath)
 
             # 2. File path to be copied
             restart_file_path = os.path.abspath(os.path.join(self.target_directory, tail))
@@ -1339,12 +1339,12 @@ class PerformCheck:
                             log.info(str(run))
                             # Database linking
                             if database_path is not None and os.path.exists(run.target_directory):
-                                head, tail = os.path.split(database_path)
+                                _, tail = os.path.split(database_path)
                                 os.symlink(database_path, os.path.join(run.target_directory, tail))
                                 print(tools.indent(tools.green(f'Preprocessing: Linked database [{database_path}] to [{run.target_directory}] ... '), 2))
                             # CVAE scattering linking
                             if cvae_scattering_cvae is not None and os.path.exists(run.target_directory):
-                                head, tail = os.path.split(cvae_scattering_cvae)
+                                _, tail = os.path.split(cvae_scattering_cvae)
                                 os.symlink(cvae_scattering_cvae, os.path.join(run.target_directory, tail))
                                 print(tools.indent(tools.green(f'Preprocessing: Linked CVAE scattering cvae file [{cvae_scattering_cvae}] to [{run.target_directory}] ... '), 2))
 
