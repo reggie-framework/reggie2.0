@@ -203,14 +203,8 @@ def diff_value(x, x_ref, tol, tol_type):
     tol_type : tolerance type, relative or absolute
     """
     # check tolerance type: absolute/relative (is the reference value is zero, absolute comparison is used)
-    if tol_type == 'absolute':
-        diff = abs(x - x_ref)
-    else:  # relative comparison
-        # if the reference value is zero, use absolute comparison
-        if abs(x_ref) > 0.0:
-            diff = abs(x / x_ref - 1.0)
-        else:
-            diff = x
+    # > if the reference value is zero, use absolute comparison
+    diff = abs(x - x_ref) if tol_type == 'absolute' else abs(x / x_ref - 1.0) if abs(x_ref) > 0.0 else x
 
     # determie success logical list for return variable
     success = diff <= tol

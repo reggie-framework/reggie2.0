@@ -224,16 +224,10 @@ def StandaloneAutomaticMPIDetection(binary_path):
                                 # Remove leading and trailing white spaces
                                 parameter = parameter.strip()
                                 # Get lower case string and set logical if, finally, the line {[( CMAKE )]} is found
-                                if parameter.lower() == 'cmake':
-                                    checkCMAKELine = True
-                                else:
-                                    checkCMAKELine = False
+                                checkCMAKELine = True if parameter.lower() == 'cmake' else False
                                 # Get lower case string and set logical if, finally, the line {[( libpiclasstatic.dir/flags.make )]} is found
                                 parameter = parameter.lower()
-                                if parameter.startswith('lib') and parameter.endswith('static.dir/flags.make'):
-                                    checklibstaticLine = True
-                                else:
-                                    checklibstaticLine = False
+                                checklibstaticLine = True if parameter.startswith('lib') and parameter.endswith('static.dir/flags.make') else False
 
     except Exception as e:
         print(tools.red("Error checking userblock in StandaloneAutomaticMPIDetection() in check.py:\nError message [{}]\nThis program, however, will not be terminated!".format(e)))
@@ -283,10 +277,7 @@ def getBuilds(basedir, source_directory, CMAKE_BUILD_TYPE, singledir, coverage):
     combis, digits = combinations.getCombinations(os.path.join(source_directory, 'builds.ini'), OverrideOptionKey='CMAKE_BUILD_TYPE', OverrideOptionValue=CMAKE_BUILD_TYPE)
 
     # create Builds
-    if singledir:
-        builds = [Build(basedir, source_directory, b, 0, coverage=coverage) for b in combis]
-    else:
-        builds = [Build(basedir, source_directory, b, i, coverage=coverage) for i, b in enumerate(combis, start=1)]
+    builds = [Build(basedir, source_directory, b, 0, coverage=coverage) for b in combis] if singledir else [Build(basedir, source_directory, b, i, coverage=coverage) for i, b in enumerate(combis, start=1)]
     return builds
 
 
@@ -313,10 +304,7 @@ class Example(OutputDirectory):
 
 def getExamples(path, build, log):
     # checks directory with 'builds.ini'
-    if os.path.exists(os.path.join(build.source_directory, 'builds.ini')):
-        example_paths = [os.path.join(path, p) for p in sorted(os.listdir(path)) if os.path.isdir(os.path.join(path, p))]
-    else:
-        example_paths = [path]
+    example_paths = [os.path.join(path, p) for p in sorted(os.listdir(path)) if os.path.isdir(os.path.join(path, p))] if os.path.exists(os.path.join(build.source_directory, 'builds.ini')) else [path]
 
     examples = []  # list of examples for each build
     # iterate over all example paths (directories of the examples)
@@ -400,19 +388,13 @@ def SetMPIrun(build, args, MPIthreads):
             # Check whether the compiled executable was created with MPI=ON
             if build.MPIbuilt:
                 if args.hlrs:
-                    if int(MPIthreads) < 24 :  # fmt: skip
-                        cmd = ["aprun", "-n", MPIthreads, "-N", MPIthreads]
-                    else :  # fmt: skip
-                        cmd = ["aprun", "-n", MPIthreads, "-N", "24"]
+                    cmd = ["aprun", "-n", MPIthreads, "-N", MPIthreads] if int(MPIthreads) < 24 else ["aprun", "-n", MPIthreads, "-N", "24"]
                 else:
                     if args.MPIexe == 'mpirun':
                         if args.MaxCores > 0 or args.detectedMPICH:
                             # MPICH core limit due to massive drop in performance when using over-subscription
                             if args.MaxCores > 0 and args.MaxCores < int(MPIthreads):
-                                if args.detectedMPICH:
-                                    tmpStr = "MPICH"
-                                else:
-                                    tmpStr = "MaxProcs"
+                                tmpStr = "MPICH" if args.detectedMPICH else "MaxProcs"
 
                                 print(tools.indent(tools.yellow("{} process limit activated: Setting MPIthreads={} (originally was {})".format(tmpStr, args.MaxCores, MPIthreads)), 3))
                                 MPIthreads = str(args.MaxCores)
@@ -504,12 +486,9 @@ def getExternals(path, example, build):
             binary = os.path.basename(externalbinary).lower()
 
             # First: Check for the binary under ./bin directory (ignore the original full path)
-            if isinstance(build, Standalone):
-                # Pre-compiled mode: Use only the binary name
-                binary_path = os.path.abspath(os.path.join(build.binary_dir, binary))
-            else:
-                # Build mode: Use the complete binary path
-                binary_path = os.path.abspath(os.path.join(build.binary_dir, externalbinary))
+            # > Pre-compiled mode: Use only the binary name
+            # > Build mode: Use the complete binary path
+            binary_path = os.path.abspath(os.path.join(build.binary_dir, binary)) if isinstance(build, Standalone) else os.path.abspath(os.path.join(build.binary_dir, externalbinary))
 
             # Second: If the binary path does not exist
             # 1.) Check the original binary path, e.g., ./hopr/build/bin/hopr
@@ -1114,12 +1093,9 @@ class PerformCheck:
             cmd_gcovr.extend(args.gcovr_extra.split(' '))
 
         # get name of current build source dir
-        if self.coverage_env:
-            # get cwd for naming convention due to gitlab setup
-            report_name = f"combined_report_{os.path.basename(os.getcwd())}.json"
-        else:
-            # get build_dir name otherwise
-            report_name = f"combined_report_{os.path.basename(str(coverage_files_dir))}.json"
+        # > get cwd for naming convention due to gitlab setup
+        # > get build_dir name otherwise
+        report_name = f"combined_report_{os.path.basename(os.getcwd())}.json" if self.coverage_env else f"combined_report_{os.path.basename(str(coverage_files_dir))}.json"
 
         # check if file already exists from other reggie call before the current call, e.g. two regression tests use the same build, which would lead to the same report_name here
         if report_name in os.listdir(self.coverage_dir):
@@ -1308,10 +1284,9 @@ class PerformCheck:
                             # Additionally check for variable MPI_built_flag=PICLAS_MPI (or FLEXI_MPI, depending on the executable name)
                             MPI_built_flag = os.path.basename(build.binary_path).upper() + "_MPI"
                             MPI_built_value = build.configuration.get(MPI_built_flag, 'OFF')
-                            if MPI_built_value == 'ON':  # PICLAS_MPI=ON specified
-                                MPIbuilt = True
-                            else:  # PICLAS_MPI=OFF or flag not specified (i.e. assuming LIBS_USE_MPI=OFF)
-                                MPIbuilt = False
+                            # > PICLAS_MPI=ON specified
+                            # > PICLAS_MPI=OFF or flag not specified (i.e. assuming LIBS_USE_MPI=OFF)
+                            MPIbuilt = MPI_built_value == 'ON'
                 build.MPIbuilt = MPIbuilt
 
                 # 2.   loop over all example directories
@@ -1354,10 +1329,7 @@ class PerformCheck:
                                 exit(1)
 
                         # Get the index of the restart file to append to the analyze
-                        if example.restart_file_list is not None:
-                            iRestartFile = example.restart_file_list.index(command_line.parameters.get('restart_file', None))
-                        else:
-                            iRestartFile = None
+                        iRestartFile = example.restart_file_list.index(command_line.parameters.get('restart_file', None)) if example.restart_file_list is not None else None
 
                         # 3.1    read the executable parameter file 'parameter.ini' (e.g. flexi.ini with which
                         #        flexi will be started), N=, mesh=, etc.
@@ -1423,11 +1395,9 @@ class PerformCheck:
                                             # check if externalbinary is set in self.MeshGeneration and should be executed only once, since other externals should be executed normally
                                             # we also save which MeshGenerator is matched to get the file ending
                                             self.Matched_Generator_Name = next((Generator_Name for Generator_Name in self.MeshGeneration if Generator_Name in externalbinary), None)
-                                            if self.Matched_Generator_Name:
-                                                externalcmd = self.mesh_external(run, external, externalrun, build, args)
                                             # execute other externals normally and also hopr every run if hopr binary has random name
-                                            else:
-                                                externalcmd = externalrun.execute(build, external, args)
+                                            externalcmd = self.mesh_external(run, external, externalrun, build, args) if self.Matched_Generator_Name \
+                                                     else externalrun.execute(build, external, args)  # noqa: E501
                                         # execute each external each run normally
                                         else:
                                             externalcmd = externalrun.execute(build, external, args)

@@ -23,10 +23,7 @@ class OutputDirectory:
         self.parent = parent
 
         # set parent directory for subfolder creation
-        if self.parent:
-            parent_dir = self.parent.target_directory
-        else:
-            parent_dir = OutputDirectory.output_dir
+        parent_dir = self.parent.target_directory if self.parent else OutputDirectory.output_dir
 
         # numbering of directory (if a number is supplied)
         if number >= 0:

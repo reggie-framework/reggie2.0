@@ -174,10 +174,7 @@ def getAnalyzes(path, example, args):
     # only use matplot lib if the user wants to (can cause problems on some systems causing "system call itnerrupt" errors randomly aborting the program)
     use_matplot_lib = options.get('use_matplot_lib', 'False')
     if pyplot_module_loaded:
-        if use_matplot_lib in ('True', 'true', 't', 'T'):
-            pyplot_module_loaded = True
-        else:
-            pyplot_module_loaded = False
+        pyplot_module_loaded = True if use_matplot_lib in ('True', 'true', 't', 'T') else False
 
     # 1.3 Get the names of the files (incl. wildcards) which are to be deleted in the anaylsis stage
     clean_up_files = options.get('clean_up_files', None)
@@ -1326,12 +1323,9 @@ class Analyze_h5diff(Analyze, ExternalCommand):
         # 1.  Iterate over all runs
         for iRun, run in enumerate(runs):
             # Check whether the list of diffs is to be used one-at-a-time, i.e., a list of diffs for a list of runs (each run only performs one diff, not all of them)
-            if self.one_diff_per_run:
-                # One comparison for each run
-                compares = [iRun]
-            else:
-                # All comparisons for every run
-                compares = range(self.nCompares)
+            # > One comparison for each run
+            # > All comparisons for every run
+            compares = [iRun] if self.one_diff_per_run else range(self.nCompares)
 
             n = 0
             # Iterate over all comparisons for h5diff
@@ -1508,11 +1502,8 @@ class Analyze_h5diff(Analyze, ExternalCommand):
                     data_set_loc_file_new = data_set_loc_file + "_reshaped"
 
                     # check if dataset exists in file (if more than one array should be compared so the flipped/reshaped dataset was already created)
-                    if data_set_loc_file_new not in f1:
-                        # File: Create new dataset
-                        dset = f1.create_dataset(data_set_loc_file_new, shape=shape1, dtype=dtype1)
-                    else:
-                        dset = f1[data_set_loc_file_new]
+                    # > File: Create new dataset
+                    dset = f1.create_dataset(data_set_loc_file_new, shape=shape1, dtype=dtype1) if data_set_loc_file_new not in f1 else f1[data_set_loc_file_new]
 
                     # Write as C-continuous array via np.ascontiguousarray()
                     dset.write_direct(np.ascontiguousarray(b1_reshaped))
@@ -1552,10 +1543,7 @@ class Analyze_h5diff(Analyze, ExternalCommand):
                     flattened_shape = False
 
                 # Check whether a single variable or the complete dataset shall be compared
-                if var_attribute_loc is not None and var_name_loc is not None:
-                    compare_single_variable = True
-                else:
-                    compare_single_variable = False
+                compare_single_variable = True if var_attribute_loc is not None and var_name_loc is not None else False
 
                 # throw error if they do not coincide in any way and not only one variable is compared (since then the general shape might not matter)
                 if (not equal_shape) and (not compare_single_variable) and (not flattened_shape):  # e.g.: b1.shape = (48, 1, 1, 32)
@@ -1672,10 +1660,7 @@ class Analyze_h5diff(Analyze, ExternalCommand):
                                 data2_slice = np.array(data2_slice, dtype=float)
 
                             # np.isclose creates a boolean array with True for elements that are close to each other within a tolerance
-                            if tolerance_type_loc == '--delta':
-                                data_compare = np.isclose(data1_slice, data2_slice, atol=tolerance_value_loc)
-                            else:
-                                data_compare = np.isclose(data1_slice, data2_slice, rtol=tolerance_value_loc)
+                            data_compare = np.isclose(data1_slice, data2_slice, atol=tolerance_value_loc) if tolerance_type_loc == '--delta' else np.isclose(data1_slice, data2_slice, rtol=tolerance_value_loc)
                             NbrOfDifferences = np.sum(~data_compare)
 
                             if NbrOfDifferences > 0:
@@ -1704,10 +1689,7 @@ class Analyze_h5diff(Analyze, ExternalCommand):
                                     print('-' * 160)
                                     for i in indices:
                                         abs_diff = np.abs(real_diffs[i] - real_diffs_ref[i])
-                                        if np.abs(real_diffs_ref[i]) > 0.0:
-                                            rel_diff = abs_diff / np.abs(real_diffs_ref[i])
-                                        else:
-                                            rel_diff = 1.0
+                                        rel_diff = abs_diff / np.abs(real_diffs_ref[i]) if np.abs(real_diffs_ref[i]) > 0.0 else 1.0
                                         print(
                                             tools.red("{:<20} | {:<45} | {:<45}".format(non_masked_indices[i], str(real_diffs[i]), str(real_diffs_ref[i])))
                                             + tools.yellow(" | {:<20} | {:<20}".format(str(abs_diff), str(rel_diff)))
@@ -1820,10 +1802,7 @@ class Analyze_h5diff(Analyze, ExternalCommand):
                                 f1.close()
                                 f2.close()
 
-                                if tolerance_type_loc == '--delta':
-                                    data_compare = np.isclose(mapped_b1, mapped_b2, atol=tolerance_value_loc)
-                                else:
-                                    data_compare = np.isclose(mapped_b1, mapped_b2, rtol=tolerance_value_loc)
+                                data_compare = np.isclose(mapped_b1, mapped_b2, atol=tolerance_value_loc) if tolerance_type_loc == '--delta' else np.isclose(mapped_b1, mapped_b2, rtol=tolerance_value_loc)
 
                                 # Calculate the number of differences by using ~data_compare, where "~" is the "invert" or "complement" operation, in which all the bits of the input data are reversed.
                                 NbrOfDifferences = np.sum(~data_compare)
@@ -2074,12 +2053,9 @@ class Analyze_vtudiff(Analyze, ExternalCommand):
         # 1.  Iterate over all runs
         for iRun, run in enumerate(runs):
             # Check whether the list of diffs is to be used one-at-a-time, i.e., a list of diffs for a list of runs (each run only performs one diff, not all of them)
-            if self.one_diff_per_run:
-                # One comparison for each run
-                compares = [iRun]
-            else:
-                # All comparisons for every run
-                compares = range(self.nCompares)
+            # > One comparison for each run
+            # > All comparisons for every run
+            compares = [iRun] if self.one_diff_per_run else range(self.nCompares)
 
             n = 0
             # Iterate over all comparisons for vtudiff
@@ -2665,15 +2641,9 @@ class Analyze_compare_data_file(Analyze):
         # 1.  iterate over all runs
         for iRun, run in enumerate(runs):
             # Check whether the list of diffs is to be used one-at-a-time, i.e., a list of diffs for a list of runs (each run only performs one diff, not all of them)
-            if self.one_diff_per_run:
-                if self.nCompares > 1:
-                    # One comparison for each run
-                    compares = [iRun]
-                else:
-                    compares = [0]
-            else:
-                # All comparisons for every run
-                compares = range(self.nCompares)
+            # > One comparison for each run
+            # > All comparisons for every run
+            compares = ([iRun] if self.nCompares > 1 else [0]) if self.one_diff_per_run else range(self.nCompares)
 
             # Iterate over all comparisons for h5diff
             for compare in compares:
@@ -2909,20 +2879,14 @@ class Analyze_integrate_line(Analyze):
             for i in range(max_lines - header - 1):
                 # use trapezoidal rule (also known as the trapezoid rule or trapezium rule)
                 dx = x[i + 1] - x[i]
-                if self.option == 'DivideByTimeStep':
-                    dQ = (y[i + 1] + y[i]) / 2.0
-                else:
-                    dQ = dx * (y[i + 1] + y[i]) / 2.0
+                dQ = (y[i + 1] + y[i]) / 2.0 if self.option == 'DivideByTimeStep' else dx * (y[i + 1] + y[i]) / 2.0
                 Q += dQ
             Q = Q * self.multiplier
             if self.tolerance_type == 'absolute':
                 diff = self.integral_value - Q
             else:  # relative comparison
                 ref = self.integral_value
-                if abs(ref) > 0.0:
-                    diff = abs(Q / ref - 1.0)
-                else:
-                    diff = Q
+                diff = abs(Q / ref - 1.0) if abs(ref) > 0.0 else Q
             s = "Integrated value: [{}], Reference value: [{}], {} Difference: [{}] ({} tolerance {})".format(Q, self.integral_value, self.tolerance_type, diff, self.tolerance_type, self.tolerance_value)
             # 1.5   calculate difference and determine compare with tolerance
             success = tools.diff_value(Q, self.integral_value, self.tolerance_value, self.tolerance_type)
@@ -3086,17 +3050,11 @@ class Analyze_compare_column(Analyze):
             # count += 1
             # Check whether the list of diffs is to be used one-at-a-time, i.e., a list of diffs for a list of runs (each run only performs one diff, not all of them)
             if self.one_diff_per_restart_file:
-                if self.nCompares > 1:
-                    # One comparison for each run
-                    compares = [self.iRestartFile]
-                else:
-                    compares = [0]
+                # One comparison for each run
+                compares = [self.iRestartFile] if self.nCompares > 1 else [0]
             elif self.one_diff_per_run:
-                if self.nCompares > 1:
-                    # One comparison for each run
-                    compares = [iRun]
-                else:
-                    compares = [0]
+                # One comparison for each run
+                compares = [iRun] if self.nCompares > 1 else [0]
             else:
                 # All comparisons for every run
                 compares = range(self.nCompares)
@@ -3440,10 +3398,9 @@ class Analyze_compare_across_commands(Analyze):
             return
 
         # 2.2   compute reference value based extracted results and replicate to form reference array
-        if self.reference == 0:  # take average of extracted results as reference value
-            reference_value = np.mean(x_run)
-        else:  # take result of specific command as reference, e.g. to evaluate parallel efficiency take first command 'MPI=1'
-            reference_value = x_run[self.reference - 1]
+        #       > take average of extracted results as reference value
+        #       > take result of specific command as reference, e.g. to evaluate parallel efficiency take first command 'MPI=1'
+        reference_value = np.mean(x_run) if self.reference == 0 else x_run[self.reference - 1]
         x_ref = np.full(len(x_run), reference_value)
 
         # 2.3   calculate deviation of each extracted value from average and compare with tolerance

@@ -113,10 +113,7 @@ def main():
     # -s for save
     # -a for hlrs
     # -d1 for debug mode 1
-    if args.hlrs:
-        cmd = [reggie_cmd, '-e', str(args.exe), '.', '-s', '-a', '-d1']
-    else:
-        cmd = [reggie_cmd, '-e', str(args.exe), '.', '-s', '-d1']
+    cmd = [reggie_cmd, '-e', str(args.exe), '.', '-s', '-a', '-d1'] if args.hlrs else [reggie_cmd, '-e', str(args.exe), '.', '-s', '-d1']
     # cmd = ["ls","-l"] # for testing some other commands
     if args.case:
         if os.path.isdir(args.case):
