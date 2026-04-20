@@ -713,7 +713,7 @@ class Run(OutputDirectory, ExternalCommand):
             src = os.path.abspath(os.path.join(self.source_directory, f))
             dst = os.path.abspath(os.path.join(self.target_directory, f))
             if os.path.isdir(src):  # check if file or directory needs to be copied
-                if not os.path.basename(src) == 'output_dir':  # do not copy the output_dir recursively into itself! (infinite loop)
+                if os.path.basename(src) != 'output_dir':  # do not copy the output_dir recursively into itself! (infinite loop)
                     shutil.copytree(src, dst)  # copy tree
             else:
                 # Check for symbolic links
