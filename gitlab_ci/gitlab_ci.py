@@ -220,12 +220,12 @@ for i, case in enumerate(cases):
     # cmd = ["ls","-l"] # for testing some other commands
 
     if args.dryrun:  # do not execute anythin in dryrun mode
-        print(str(f"[{i+1:5d}] ") + cmd_string)
+        print(str(f"[{i + 1:5d}] ") + cmd_string)
     else:
         # run case depending on supplied (or default) number "begin"
-        if i+1 >= args.begin:  # run this case
+        if i + 1 >= args.begin:  # run this case
             s_Color = "f[{i+1:5d}]" + tools.blue(" Running  ") + cmd_string + " ..."
-            s_NoColor = str(f"[{i+1:5d}]") + " Running  " + cmd_string + " ..."
+            s_NoColor = str(f"[{i + 1:5d}]") + " Running  " + cmd_string + " ..."
             print(s_Color)
             # print(s+" ...", end=' ') # skip linebreak
             # print(s+" ...") # skip linebreak
@@ -255,13 +255,13 @@ for i, case in enumerate(cases):
 
             # move the std.out file
             old_std = os.path.join(target_directory, 'std.out')
-            new_std = os.path.join(target_directory, f'std-{i+1}.out')
+            new_std = os.path.join(target_directory, f'std-{i + 1}.out')
             if os.path.exists(os.path.abspath(old_std)):  # check if file exists
                 os.rename(old_std, new_std)
 
             # move the err.out file
             old_err = os.path.join(target_directory, 'std.err')
-            new_err = os.path.join(target_directory, f'std-{i+1}.err')
+            new_err = os.path.join(target_directory, f'std-{i + 1}.err')
             if os.path.exists(os.path.abspath(old_err)):  # check if file exists
                 os.rename(old_err, new_err)
 

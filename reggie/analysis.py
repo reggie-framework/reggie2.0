@@ -766,7 +766,7 @@ class Analyze_Convtest_h(Analyze):
             else:
                 print(
                     tools.yellow(
-                        'Could not import matplotlib.pyplot module. ' 'This is required for creating plots under "Analyze_Convtest_h(Analyze)". \nSet "use_matplot_lib=True" in analyze.ini in order to activate plotting.'
+                        'Could not import matplotlib.pyplot module. This is required for creating plots under "Analyze_Convtest_h(Analyze)". \nSet "use_matplot_lib=True" in analyze.ini in order to activate plotting.'
                     )
                 )
 
@@ -990,7 +990,7 @@ class Analyze_Convtest_t(Analyze):
             else:
                 print(
                     tools.yellow(
-                        'Could not import matplotlib.pyplot module. ' 'This is required for creating plots under "Analyze_Convtest_t(Analyze)". \nSet "use_matplot_lib=True" in analyze.ini in order to activate plotting.'
+                        'Could not import matplotlib.pyplot module. This is required for creating plots under "Analyze_Convtest_t(Analyze)". \nSet "use_matplot_lib=True" in analyze.ini in order to activate plotting.'
                     )
                 )
 
@@ -1055,7 +1055,6 @@ class Analyze_Convtest_p(Analyze):
         # fmt: on
 
     def perform(self, runs):
-
         """
         General workflow:
         1.  read the polynomial degree for all runs
@@ -1136,7 +1135,7 @@ class Analyze_Convtest_p(Analyze):
             else:
                 print(
                     tools.yellow(
-                        'Could not import matplotlib.pyplot module. ' 'This is required for creating plots under "Analyze_Convtest_p(Analyze)". \nSet "use_matplot_lib=True" in analyze.ini in order to activate plotting.'
+                        'Could not import matplotlib.pyplot module. This is required for creating plots under "Analyze_Convtest_p(Analyze)". \nSet "use_matplot_lib=True" in analyze.ini in order to activate plotting.'
                     )
                 )
 
@@ -1511,12 +1510,7 @@ class Analyze_h5diff(Analyze, ExternalCommand):
 
                     # In the following, compare the reshaped array instead of the original one
                     str_1 = f"'{data_set_loc_file_new}' (instead of '{data_set_loc_file}') from {file_loc}"
-                    print(
-                        tools.yellow(
-                            f"    Reshaping dim={reshape_dim_loc} to value={reshape_value_loc} (the old value was {old_value}).\n"
-                            f"Now using: {str_1}, which has a changed shape from {old_shape} to {newShape}"
-                        )
-                    )
+                    print(tools.yellow(f"    Reshaping dim={reshape_dim_loc} to value={reshape_value_loc} (the old value was {old_value}).\nNow using: {str_1}, which has a changed shape from {old_shape} to {newShape}"))
 
                     data_set_loc_file = data_set_loc_file_new
 
@@ -1683,10 +1677,7 @@ class Analyze_h5diff(Analyze, ExternalCommand):
                                     for i in indices:
                                         abs_diff = np.abs(real_diffs[i] - real_diffs_ref[i])
                                         rel_diff = abs_diff / np.abs(real_diffs_ref[i]) if np.abs(real_diffs_ref[i]) > 0.0 else 1.0
-                                        print(
-                                            tools.red(f"{non_masked_indices[i]:<20} | {real_diffs[i]!s:<45} | {real_diffs_ref[i]!s:<45}")
-                                            + tools.yellow(f" | {abs_diff!s:<20} | {rel_diff!s:<20}")
-                                        )
+                                        print(tools.red(f"{non_masked_indices[i]:<20} | {real_diffs[i]!s:<45} | {real_diffs_ref[i]!s:<45}") + tools.yellow(f" | {abs_diff!s:<20} | {rel_diff!s:<20}"))
                                     run.analyze_results.append(s)
                                     run.analyze_successful = False
                                     Analyze.total_errors += 1
@@ -1742,9 +1733,7 @@ class Analyze_h5diff(Analyze, ExternalCommand):
                                         if idx >= 0:
                                             NbrOfDifferences = int(lastline[:idx])  # get the number of differences that where identified by h5diff
                                             if NbrOfDifferences <= max_differences_loc:
-                                                s = tools.indent(
-                                                    f"{lastline!s}, but {max_differences_loc} differences are allowed (given by h5diff_max_differences). The h5diff is therefore marked as passed.", 2
-                                                )
+                                                s = tools.indent(f"{lastline!s}, but {max_differences_loc} differences are allowed (given by h5diff_max_differences). The h5diff is therefore marked as passed.", 2)
                                                 s = tools.purple(s)
                                                 print(s)
                                                 self.return_code = 0
@@ -2241,9 +2230,7 @@ class Analyze_vtudiff(Analyze, ExternalCommand):
                     # In the following, compare the reshaped array instead of the original one
                     str_1 = f"'{file_loc_new}' (instead of '{file_loc}')"
                     print(
-                        tools.yellow(
-                            f"    Reshaping dim={reshape_dim_loc} to value={reshape_value_loc} (the old value was {old_value}).\n    Now using: {str_1}, which has a changed shape from {old_shape} to {newShape}"
-                        )
+                        tools.yellow(f"    Reshaping dim={reshape_dim_loc} to value={reshape_value_loc} (the old value was {old_value}).\n    Now using: {str_1}, which has a changed shape from {old_shape} to {newShape}")
                     )
 
                 # 1.2.0   sanity checks if data and reference data match
@@ -2380,9 +2367,7 @@ class Analyze_vtudiff(Analyze, ExternalCommand):
                                     abs_diff = np.abs(val - ref_val)
                                     rel_diff = np.divide(abs_diff, np.abs(ref_val), out=np.zeros_like(abs_diff), where=ref_val != 0)
 
-                                    print(
-                                        tools.red(f"{actual_idx:<20} | {val!s:<45} | {ref_val!s:<45}") + tools.yellow(f" | {np.round(abs_diff, 6)!s:<25} | {np.round(rel_diff, 6)!s:<25}")
-                                    )
+                                    print(tools.red(f"{actual_idx:<20} | {val!s:<45} | {ref_val!s:<45}") + tools.yellow(f" | {np.round(abs_diff, 6)!s:<25} | {np.round(rel_diff, 6)!s:<25}"))
 
                             offset += size
 
@@ -2688,7 +2673,7 @@ class Analyze_compare_data_file(Analyze):
                             except Exception:
                                 header += 1
                                 header_line = row
-                        if (i+1) == line_loc:
+                        if (i + 1) == line_loc:
                             print(tools.yellow(str(i)), end=' ')  # skip line break
                             break
                     line_len = len(line)
@@ -3106,7 +3091,8 @@ class Analyze_compare_column(Analyze):
                         # Sanity check: number of columns should not be smaller than the selected column
                         if column_count - 1 < index_loc:
                             s = (
-                                f"Failed: Cannot perform analyze Analyze_compare_column, because the supplied column ({index_loc}) in {path} exceeds the number of " f"columns ({0}) in the data file (the first column must start at 0)"
+                                f"Failed: Cannot perform analyze Analyze_compare_column, because the supplied column ({index_loc}) in {path} exceeds the number of "
+                                f"columns ({0}) in the data file (the first column must start at 0)"
                             )
                             print(tools.red(s))
                             run.analyze_results.append(s)
@@ -3195,7 +3181,10 @@ class Analyze_compare_column(Analyze):
 
                     # Check dimensions of the arrays
                     if data.shape != data_ref.shape:
-                        s = (f"Failed: cannot perform analyze Analyze_compare_column, because the shape of the data in file=[{path}] is {data.shape} and that of the " f"reference=[{reference_file_loc}] is {data_ref.shape}. They cannot be different!")
+                        s = (
+                            f"Failed: cannot perform analyze Analyze_compare_column, because the shape of the data in file=[{path}] is {data.shape} and that of the "
+                            f"reference=[{reference_file_loc}] is {data_ref.shape}. They cannot be different!"
+                        )
                         print(tools.red(s))
                         run.analyze_results.append(s)
                         run.analyze_successful = False
@@ -3322,7 +3311,10 @@ class Analyze_compare_across_commands(Analyze):
             # 1.3   check number of lines in data file
             selected_line = i
             if selected_line < self.line_number:
-                s = (f"Failed: cannot perform analyze Analyze_compare_across_commands, because the supplied line number [{self.line_number}] in [{path}] exceeds the number of " f"lines [{selected_line}] in the data file (the first line has number 1)")
+                s = (
+                    f"Failed: cannot perform analyze Analyze_compare_across_commands, because the supplied line number [{self.line_number}] in [{path}] exceeds the number of "
+                    f"lines [{selected_line}] in the data file (the first line has number 1)"
+                )
                 print(tools.red(s))
                 run.analyze_results.append(s)
                 run.analyze_successful = False
@@ -3333,7 +3325,8 @@ class Analyze_compare_across_commands(Analyze):
             line_len = len(line) - 1
             if line_len < self.column_index:
                 s = (
-                    f"Failed: cannot perform analyze Analyze_compare_across_commands, because the supplied column [{self.column_index}] in [{path}] exceeds the number of columns " f"[{line_len}] in the data file (the first column must start at 0)"
+                    f"Failed: cannot perform analyze Analyze_compare_across_commands, because the supplied column [{self.column_index}] in [{path}] exceeds the number of columns "
+                    f"[{line_len}] in the data file (the first column must start at 0)"
                 )
                 print(tools.red(s))
                 run.analyze_results.append(s)
@@ -3382,4 +3375,7 @@ class Analyze_compare_across_commands(Analyze):
             Analyze.total_errors += 1
 
     def __str__(self):
-        return (f"compare results of corresponding runs from different commands: file [{self.file}] and comparison " f"of value in line [{self.line_number}] (first line = 1, last line = -1) and column [{self.column_index}] (first column = 0)")
+        return (
+            f"compare results of corresponding runs from different commands: file [{self.file}] and comparison "
+            f"of value in line [{self.line_number}] (first line = 1, last line = -1) and column [{self.column_index}] (first column = 0)"
+        )

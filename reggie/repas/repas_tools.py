@@ -151,13 +151,13 @@ class Case(ExternalCommand):
             self.nErrors += 1
 
         # move the std.out file
-        old_std = os.path.join(self.target_directory,  'std.out')
+        old_std = os.path.join(self.target_directory, 'std.out')
         new_std = os.path.join(self.target_directory, f'std-{i:04d}')
         if os.path.exists(os.path.abspath(old_std)):  # check if file exists
             os.rename(old_std, new_std)
 
         # move the err.out file
-        old_err = os.path.join(self.target_directory,  'std.err')
+        old_err = os.path.join(self.target_directory, 'std.err')
         new_err = os.path.join(self.target_directory, f'std-{i:04d}.err')
         if os.path.exists(os.path.abspath(old_err)):  # check if file exists
             os.rename(old_err, new_err)

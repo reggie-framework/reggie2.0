@@ -256,9 +256,7 @@ def StandaloneAutomaticMPIDetection(binary_path):
                 if 'not a dynamic executable' in err:
                     err = err.rstrip('\n')
                     err = err.lstrip()
-                    print(
-                        tools.yellow(f"Automatically determined that the executable was compiled with MPI libs (because file is not a dynamic executable)\n  File: {binary_path}\n  Test: {a} -> returned '{err}'")
-                    )
+                    print(tools.yellow(f"Automatically determined that the executable was compiled with MPI libs (because file is not a dynamic executable)\n  File: {binary_path}\n  Test: {a} -> returned '{err}'"))
                 else:
                     print(tools.yellow(f"Automatically determined that the executable was compiled with MPI libs\n  File: {binary_path}\n  Test: {a} -> returned '{std}'"))
             else:
@@ -346,7 +344,7 @@ def getCommand_Lines(path, example, MPIbuilt, MaxCores):
         combis, _ = combinations.getCombinations(path, MaxCores=MaxCores)
 
     for i, r in enumerate(combis):
-        command_lines.append(Command_Lines(r, example, i+1))
+        command_lines.append(Command_Lines(r, example, i + 1))
 
     return command_lines
 
@@ -457,8 +455,7 @@ def getExternals(path, example, build):
     for iCombi, combi in enumerate(combis):
         # Check directory
         externaldirectory = combi.get('externaldirectory', None)
-        if (not externaldirectory or not os.path.exists(os.path.join(example.source_directory, externaldirectory))) and \
-            not externaldirectory.endswith('.ini'):  # string is or empty and path does not exist
+        if (not externaldirectory or not os.path.exists(os.path.join(example.source_directory, externaldirectory))) and not externaldirectory.endswith('.ini'):  # string is or empty and path does not exist
             s = tools.red(f'getExternals: "externaldirectory" is empty or the path [{os.path.join(example.source_directory, externaldirectory)}] does not exist')
             externals_errors.append(s)
             print(s)
@@ -669,7 +666,7 @@ def getExternalRuns(parameterfilepath, external):
         # construct run information with one set of parameters (parameter.ini will be created in target directory when the setup
         # is executed), one set of command line options (e.g. mpirun information) and the info of how many times a parameter is
         # varied under the variable 'digits'
-        run = ExternalRun(parameters, parameterfilepath, external, i+1, digits)
+        run = ExternalRun(parameters, parameterfilepath, external, i + 1, digits)
 
         # check if the run cannot be performed due to problems encountered when setting up the folder (e.g. not all files could
         # be create or copied to the target directory)
@@ -895,7 +892,7 @@ def getRuns(path, command_line):
         # construct run information with one set of parameters (parameter.ini will be created in target directory when the setup
         # is executed), one set of command line options (e.g. mpirun information) and the info of how many times a parameter is
         # varied under the variable 'digits'
-        run = Run(parameters, path, command_line, i+1, digits)
+        run = Run(parameters, path, command_line, i + 1, digits)
         # check if the run cannot be performed due to problems encountered when setting up the folder (e.g. not all files could
         # be create or copied to the target directory)
         if not run.skip:
@@ -1381,8 +1378,7 @@ class PerformCheck:
                                             # we also save which MeshGenerator is matched to get the file ending
                                             self.Matched_Generator_Name = next((Generator_Name for Generator_Name in self.MeshGeneration if Generator_Name in externalbinary), None)
                                             # execute other externals normally and also hopr every run if hopr binary has random name
-                                            externalcmd = self.mesh_external(run, external, externalrun, build, args) if self.Matched_Generator_Name \
-                                                     else externalrun.execute(build, external, args)  # noqa: E501
+                                            externalcmd = self.mesh_external(run, external, externalrun, build, args) if self.Matched_Generator_Name else externalrun.execute(build, external, args)  # noqa: E501
                                         # execute each external each run normally
                                         else:
                                             externalcmd = externalrun.execute(build, external, args)

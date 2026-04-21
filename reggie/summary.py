@@ -116,7 +116,7 @@ def SummaryOfErrors(builds, args):
                     try:
                         try:
                             cores = command_line.parameters.get('MPI', '-')
-                            if int(cores) > args.MaxCores and args.MaxCores> 0:
+                            if int(cores) > args.MaxCores and args.MaxCores > 0:
                                 run.output_strings['MPI'] = '{} (changed from {})'.format(args.MaxCores, run.output_strings['MPI'])
                                 run.outputMPIyellow = True
                         except Exception:
