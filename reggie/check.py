@@ -1319,6 +1319,8 @@ class PerformCheck:
 
                         # 4.   loop over all parameter combinations supplied in the parameter file 'parameter.ini'
                         for self.RunCount, run in enumerate(command_line.runs, start=1):
+                            # collect different runtimes (from externals and main run)
+                            run.externals_time = 0
                             print(tools.indent(f'Run {self.RunCount} of {len(command_line.runs)}', 1))
                             log.info(str(run))
                             # Database linking
@@ -1395,6 +1397,9 @@ class PerformCheck:
                                                 print(s)
                                                 sys.exit(1)
 
+                                        # add external runtime
+                                        run.externals_time += externalrun.walltime
+
                             if PreprocessingActive:
                                 print(tools.indent(tools.green(f'Preprocessing: Externals {externalbinaries} finished!'), 3))
 
@@ -1454,6 +1459,9 @@ class PerformCheck:
                                                 s = tools.red('Stop on first error (-p, --stop) is activated! Execution (post) external failed')
                                                 print(s)
                                                 sys.exit(1)
+
+                                        # add external runtime
+                                        run.externals_time += externalrun.walltime
 
                             if PostprocessingActive:
                                 print(tools.indent(tools.green(f'Postprocessing: Externals {externalbinaries} finished!'), 3))
