@@ -124,7 +124,7 @@ def getArgsAndBuilds():
     parser.add_argument('check', help='Path to check-/example-directory.')
     parser.add_argument('-o', '--coverage'   , help='Compile code with code coverage option, always returns output in json format. Additional values (resulting in additional output formats): 1=HTML output, 2=Cobertura XML, also allows 12 for both. Default=0 if flag used without value.', nargs='?', const='0', default=None) # noqa: E501
     parser.add_argument('--gcovr_extra'      , help='Extra arguments (string) to pass to gcovr (e.g. --exclude-lines-by-pattern <pattern> or --include-internal-functions). Additional arguments can be obtained from the gcovr documentation.', default=None) # noqa: E501
-    parser.add_argument('--meshesdir'        , help='When hopr is used as external: Only run hopr once for each example and store meshes in separate directory to use symbolic links.', action='store_true')
+    parser.add_argument('--meshesdir'        , help='Deactivate re-using meshes created with hopr/pyhope as external. With this flag all externals are pre-executed before each run, even if they create the same mesh all the time. Otherwise hopr/pyhope is only run once for each example and meshes are stored in separate directory to use with symbolic links.', action='store_false') # noqa: E501
     parser.add_argument('--gitlab-ci'        , help='Activated automatically when running gitlab-ci pipelines via environment variable REGGIE_GITLAB_CI to print Running [...] + Successful/Failed [x.xx sec] in a single line instead of breaking the last part into a new line.', action='store_true')  # noqa: E501
     # fmt: on
     # parser.set_defaults(carryon=False)
@@ -150,11 +150,6 @@ def getArgsAndBuilds():
     gitlab_ci_env = os.getenv('REGGIE_GITLAB_CI')
     if gitlab_ci_env:
         args.gitlab_ci = True
-
-    # ENV variable for meshesdir
-    meshesdir_env = os.getenv('MESHESDIR')
-    if meshesdir_env:
-        args.meshesdir = True
 
     # ENV variable for gcovr_extra
     gcovr_args = os.getenv('GCOVR_ARGS')
