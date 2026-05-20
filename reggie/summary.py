@@ -101,7 +101,7 @@ def SummaryOfErrors(builds, args):
                             else:
                                 pathColoured += delimiter + f'{iDirName}'
                             delimiter = '/'
-                        run.output_strings['path'] = pathColoured
+                        run.path_coloured = pathColoured
                     except Exception:
                         pass
                     # Check if command_line.ini has MPI>1 but the binary is built with MPI=OFF and therefore executed in single mode
@@ -182,7 +182,12 @@ def SummaryOfErrors(builds, args):
                         elif key == "MPI" and any([args.noMPI, args.noMPIautomatic]):
                             print(tools.yellow("1".ljust(value)), end=' ')  # skip linebreak
                         elif key == "MPI" and run.outputMPIyellow:
-                            print(tools.yellow(f'{run.output_strings[key].ljust(value)}'), end=' ')  # skip linebreak
+                            print(tools.yellow('%s' % run.output_strings[key].ljust(value)), end=' ')  # skip linebreak
+                        elif key == "path" and hasattr(run, 'path_coloured'):
+                            # use run.output_strings['path'] to get visible length of path for padding calculation, since ansi codes changes length of string
+                            padding = max(0, value - len(run.output_strings[key]))
+                            # print coloured string with correct padding from visual string
+                            print(run.path_coloured + (' ' * padding), end=' ')
                         else:
                             print(run.output_strings[key].ljust(value), end=' ')  # skip linebreak
                         print(spacing * ' ', end=' ')  # skip linebreak

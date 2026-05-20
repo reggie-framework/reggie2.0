@@ -15,6 +15,7 @@ import sys
 import glob
 import subprocess
 import logging
+import threading
 import select
 from timeit import default_timer as timer
 
@@ -85,8 +86,6 @@ class ExternalCommand:
         log.debug(workingDir)
         log.debug(cmd)
         start = timer()
-        (pipeOut_r, pipeOut_w) = os.pipe()
-        (pipeErr_r, pipeErr_w) = os.pipe()
 
         self.stdout = []
         self.stderr = []
@@ -98,60 +97,72 @@ class ExternalCommand:
         # called with shell=True (which however uses the /bin/sh by default)
         cmd = replace_wild_cards_recursive(cmd, workingDir)
 
-        # Check if an environment is used and load it into the subprocess if required
-        # fmt: off
-        if environment is None :
-            self.process = subprocess.Popen(cmd, 
-                                            stdout             = pipeOut_w, 
-                                            stderr             = pipeErr_w, 
-                                            universal_newlines = True, 
-                                            cwd                = workingDir)
-        else :
-            self.process = subprocess.Popen(cmd, 
-                                            stdout             = pipeOut_w, 
-                                            stderr             = pipeErr_w, 
-                                            universal_newlines = True, 
-                                            cwd                = workingDir, 
-                                            env                = environment)
-        # fmt: on
+        # ThreadPool creates new Threads called 'Thead-N', if only one Thread is used, it's name is 'MainThread'
+        is_parallel = threading.current_thread().name != 'MainThread'
+        if is_parallel:
+            if environment is None:
+                self.process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True, universal_newlines=True, cwd=workingDir)
+            else:
+                self.process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True, universal_newlines=True, cwd=workingDir, env=environment)
+            out, err = self.process.communicate()
+            self.stdout = [] if out is None else [line + '\n' for line in out.splitlines()]
+            self.stderr = [] if err is None else [line + '\n' for line in err.splitlines()]
+        else:
+            (pipeOut_r, pipeOut_w) = os.pipe()
+            (pipeErr_r, pipeErr_w) = os.pipe()
+            # Check if an environment is used and load it into the subprocess if required
+            # fmt: off
+            if environment is None :
+                self.process = subprocess.Popen(cmd, \
+                                                stdout             = pipeOut_w, \
+                                                stderr             = pipeErr_w, \
+                                                universal_newlines = True, \
+                                                cwd                = workingDir)
+            else :
+                self.process = subprocess.Popen(cmd, \
+                                                stdout             = pipeOut_w, \
+                                                stderr             = pipeErr_w, \
+                                                universal_newlines = True, \
+                                                cwd                = workingDir, \
+                                                env                = environment)
+            # fmt: on
 
-        # .poll() is None means that the child is still running
-        while self.process.poll() is None:
-            # Loop as long as the select mechanism indicates there is data to be read from the buffer
+            # .poll() is None means that the child is still running
+            while self.process.poll() is None:
+                # Loop as long as the select mechanism indicates there is data to be read from the buffer
 
-            # 1.   std.out
-            while len(select.select([pipeOut_r], [], [], 0)[0]) == 1:
-                # Read up to a 1 KB chunk of data
-                out_s = os.read(pipeOut_r, 1024)
-                if not isinstance(out_s, str):
-                    out_s = out_s.decode("utf-8", 'ignore')
-                bufOut = bufOut + out_s
-                tmp = bufOut.split('\n')
-                for line in tmp[:-1]:
-                    self.stdout.append(line + '\n')
-                    log.debug(line)
-                bufOut = tmp[-1]
+                # 1.   std.out
+                while len(select.select([pipeOut_r], [], [], 0)[0]) == 1:
+                    # Read up to a 1 KB chunk of data
+                    out_s = os.read(pipeOut_r, 1024)
+                    if not isinstance(out_s, str):
+                        out_s = out_s.decode("utf-8", 'ignore')
+                    bufOut = bufOut + out_s
+                    tmp = bufOut.split('\n')
+                    for line in tmp[:-1]:
+                        self.stdout.append(line + '\n')
+                        log.debug(line)
+                    bufOut = tmp[-1]
 
-            # 1.   err.out
-            while len(select.select([pipeErr_r], [], [], 0)[0]) == 1:
-                # Read up to a 1 KB chunk of data
-                out_s = os.read(pipeErr_r, 1024)
-                if not isinstance(out_s, str):
-                    out_s = out_s.decode("utf-8", 'ignore')
-                bufErr = bufErr + out_s
-                tmp = bufErr.split('\n')
-                for line in tmp[:-1]:
-                    self.stderr.append(line + '\n')
-                    log.info(line)
-                bufErr = tmp[-1]
+                # 1.   err.out
+                while len(select.select([pipeErr_r], [], [], 0)[0]) == 1:
+                    # Read up to a 1 KB chunk of data
+                    out_s = os.read(pipeErr_r, 1024)
+                    if not isinstance(out_s, str):
+                        out_s = out_s.decode("utf-8", 'ignore')
+                    bufErr = bufErr + out_s
+                    tmp = bufErr.split('\n')
+                    for line in tmp[:-1]:
+                        self.stderr.append(line + '\n')
+                        log.info(line)
+                    bufErr = tmp[-1]
 
-        os.close(pipeOut_w)
-        os.close(pipeOut_r)
-        os.close(pipeErr_w)
-        os.close(pipeErr_r)
+            os.close(pipeOut_w)
+            os.close(pipeOut_r)
+            os.close(pipeErr_w)
+            os.close(pipeErr_r)
 
         self.return_code = self.process.returncode
-
         end = timer()
         self.walltime = end - start
 
