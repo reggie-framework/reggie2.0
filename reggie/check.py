@@ -15,8 +15,13 @@ import os
 import re
 import shutil
 import subprocess
-from typing import cast
 import tempfile
+import threading
+import io
+import sys
+from functools import partial
+from typing import cast
+from multiprocessing.pool import ThreadPool
 
 from reggie import combinations
 from reggie import tools
@@ -24,6 +29,7 @@ from reggie import summary
 from reggie.analysis import Analyze, getAnalyzes, Clean_up_files, Analyze_compare_across_commands
 from reggie.outputdirectory import OutputDirectory
 from reggie.externalcommand import ExternalCommand
+from reggie.args_parser import getMaxCPUCores
 
 # import h5 I/O routines
 try:
@@ -938,6 +944,24 @@ def getRuns(path, command_line):
     return runs
 
 
+class ThreadSafeStdout:
+    # save  current stdout and create new thread local attribute
+    def __init__(self):
+        self.original_stdout = sys.stdout
+        self.local = threading.local()
+
+    # catch print statements (sys.stdout.write(..) with local stream, if present and default back to original stdout)
+    def write(self, data):
+        getattr(self.local, 'stream', self.original_stdout).write(data)
+
+    def flush(self):
+        getattr(self.local, 'stream', self.original_stdout).flush()
+
+    # copy other build-in methods and attributes of original stdout
+    def __getattr__(self, name):
+        return getattr(getattr(self.local, 'stream', self.original_stdout), name)
+
+
 class PerformCheck:
     def __init__(self):
         # Definition looks like: self.MeshGeneration = {'external': 'end of created filename', ...}
@@ -960,9 +984,10 @@ class PerformCheck:
 
         # dummy return for externalrun which should be skipped
         externalcmd = ''
-        # execute all external runs for first run of first command line (since loop iterates over each externalrun anyway)
-        if self.command_line_count == 1 and self.RunCount == 1:
-            # execute external
+
+        mesh_name_current_run = os.path.basename(run.parameters['MeshFile'])
+        # execute external if mesh not found in directoy of meshes
+        if not self.mesh_externals_done:
             externalcmd = externalrun.execute(build, external, args, meshes_directory=self.meshes_dir_path, mesh_generator=self.Matched_Generator_Name)
             # collect all mesh names which have been created in the directory 'self.meshes_dir_path' (since name of the mesh is not part of externalrun.parameters)
             for file in os.listdir(self.meshes_dir_path):
@@ -980,10 +1005,17 @@ class PerformCheck:
 
         # neither the first command_line or run so the mesh should have been created already, so we create the identifier to check our dict
         dict_identifier = f'{self.external_count}' + f'{self.externalparameterfile_count}' + f'{self.externalrun_count}'
-        mesh_name_current_run = os.path.basename(run.parameters['MeshFile'])
 
         # self.created_mesh_files contains dict_identifier as keys and the link to the corresponding mesh
-        mesh_name_current_externalrun = os.path.basename(self.created_mesh_files[dict_identifier])
+        try:
+            mesh_name_current_externalrun = os.path.basename(self.created_mesh_files[dict_identifier])
+        except Exception as e:
+            print(tools.indent(tools.red(
+                f"Mesh not found in {self.meshes_dir_path}\n"
+                f"Exception type: {type(e).__name__}\n"
+                f"Exception value: {e!r}\n"
+            ), 2))
+            sys.exit(1)
 
         # check if mesh of current run matches mesh of current external run to set symbolic link
         if mesh_name_current_run == mesh_name_current_externalrun:
@@ -1334,192 +1366,62 @@ class PerformCheck:
                     if args.meshesdir:
                         self.created_mesh_files = {}
                         self.meshes_dir_path = os.path.join(example.target_directory, 'meshes')
-                    for self.command_line_count, command_line in enumerate(example.command_lines, start=1):
-                        log.info(str(command_line))
+                        # self.mesh_externals_done keeps track if all meshes were created to reuse with symbolic links already
+                        self.mesh_externals_done = False
+                    for self.command_line_count, self.command_line in enumerate(example.command_lines, start=1):
+                        log.info(str(self.command_line))
                         # Database linking
-                        database_path = command_line.parameters.get('database', None)
-                        if database_path is not None:
-                            database_path = os.path.abspath(os.path.join(example.source_directory, database_path))
-                            if not os.path.exists(database_path):
-                                s = tools.red("command_line.ini: cannot find file=[%s] " % (database_path))
+                        self.database_path = self.command_line.parameters.get('database', None)
+                        if self.database_path is not None:
+                            self.database_path = os.path.abspath(os.path.join(example.source_directory, self.database_path))
+                            if not os.path.exists(self.database_path):
+                                s = tools.red("command_line.ini: cannot find file=[%s] " % (self.database_path))
                                 print(s)
                                 exit(1)
                         # CVAE scattering linking
-                        cvae_scattering_cvae = command_line.parameters.get('cvae_scattering', None)
-                        if cvae_scattering_cvae is not None:
-                            cvae_scattering_cvae = os.path.abspath(os.path.join(example.source_directory, cvae_scattering_cvae))
-                            if not os.path.exists(cvae_scattering_cvae):
-                                s = tools.red("command_line.ini: cannot find file=[%s] " % (cvae_scattering_cvae))
+                        self.cvae_scattering_cvae = self.command_line.parameters.get('cvae_scattering', None)
+                        if self.cvae_scattering_cvae is not None:
+                            self.cvae_scattering_cvae = os.path.abspath(os.path.join(example.source_directory, self.cvae_scattering_cvae))
+                            if not os.path.exists(self.cvae_scattering_cvae):
+                                s = tools.red("command_line.ini: cannot find file=[%s] " % (self.cvae_scattering_cvae))
                                 print(s)
                                 exit(1)
 
                         # Get the index of the restart file to append to the analyze
                         if example.restart_file_list is not None:
-                            iRestartFile = example.restart_file_list.index(command_line.parameters.get('restart_file', None))
+                            iRestartFile = example.restart_file_list.index(self.command_line.parameters.get('restart_file', None))
                         else:
                             iRestartFile = None
 
                         # 3.1    read the executable parameter file 'parameter.ini' (e.g. flexi.ini with which
                         #        flexi will be started), N=, mesh=, etc.
-                        command_line.runs = getRuns(os.path.join(example.source_directory, 'parameter.ini'), command_line)
+                        self.command_line.runs = getRuns(os.path.join(example.source_directory, 'parameter.ini'), self.command_line)
 
                         # 4.   loop over all parameter combinations supplied in the parameter file 'parameter.ini'
-                        for self.RunCount, run in enumerate(command_line.runs, start=1):
-                            # collect different runtimes (from externals and main run)
-                            run.externals_time = 0
-                            print(tools.indent('Run %s of %s' % (self.RunCount, len(command_line.runs)), 1))
-                            log.info(str(run))
-                            # Database linking
-                            if database_path is not None and os.path.exists(run.target_directory):
-                                head, tail = os.path.split(database_path)
-                                os.symlink(database_path, os.path.join(run.target_directory, tail))
-                                print(tools.indent(tools.green('Preprocessing: Linked database [%s] to [%s] ... ' % (database_path, run.target_directory)), 2))
-                            # CVAE scattering linking
-                            if cvae_scattering_cvae is not None and os.path.exists(run.target_directory):
-                                head, tail = os.path.split(cvae_scattering_cvae)
-                                os.symlink(cvae_scattering_cvae, os.path.join(run.target_directory, tail))
-                                print(tools.indent(tools.green('Preprocessing: Linked CVAE scattering cvae file [%s] to [%s] ... ' % (cvae_scattering_cvae, run.target_directory)), 2))
-
-                            # 4.1 read the external options in 'externals.ini' within each example directory (e.g. eos, hopr, posti)
-                            #     distinguish between pre- and post processing
-                            run.externals_pre, run.externals_post, run.externals_errors = getExternals(os.path.join(run.source_directory, 'externals.ini'), run, build)
-
-                            # (pre) externals (1): loop over all externals available in external.ini
-                            external_failed = False
-                            if run.externals_pre is None:
-                                PreprocessingActive = False
+                        if self.command_line.parameters.get('reggie_multicore', 'False').lower() in ['true', 't']:
+                            # Calculate the number of worker processes based on available cores and MPI threads
+                            cpu_count = getMaxCPUCores()
+                            num_processes = max(1, int(cpu_count / int(self.command_line.parameters.get('MPI'))))
+                            # parallelization is only implemented per run, so if the number of processes is greater than the number of runs, set it to the number of runs
+                            if num_processes > len(self.command_line.runs):
+                                num_processes = len(self.command_line.runs)
+                                s = tools.yellow(f'Number of workers exceeds number of runs. Using {num_processes} worker(s) instead.')
                             else:
-                                if len(run.externals_pre) == 0:
-                                    PreprocessingActive = False
-                                else:
-                                    PreprocessingActive = True
-                                    externalbinaries = [external.parameters.get("externalbinary") for external in run.externals_pre]
-                                    print(tools.indent(tools.green('Preprocessing: Started  %s pre-externals' % externalbinaries), 3))
+                                s = tools.yellow(f'Using {num_processes} worker(s) for parallel execution.')
+                                if num_processes == 1:
+                                    s = s.replace('parallel', 'serial')
+                            print(tools.indent(s, 1))
+                        else:
+                            num_processes = 1
 
-                            for self.external_count, external in enumerate(run.externals_pre):
-                                log.info(str(external))
-
-                                # (pre) externals (1.1): get the path and the parameterfiles to the i'th external
-                                externaldirectory = external.parameters.get("externaldirectory")
-                                if externaldirectory.endswith('.ini'):
-                                    external.directory = run.target_directory
-                                    external.parameterfiles = [externaldirectory]
-                                else:
-                                    external.directory = os.path.join(run.target_directory, externaldirectory)
-                                    external.parameterfiles = [i for i in os.listdir(external.directory) if i.endswith('.ini')]
-
-                                externalbinary = external.parameters.get("externalbinary")
-
-                                # (pre) externals (2): loop over all parameterfiles available for the i'th external
-                                for self.externalparameterfile_count, external.parameterfile in enumerate(external.parameterfiles):  # noqa: B020 loop control variable external overrides iterable it iterates
-                                    # (pre) externals (2.1): consider combinations
-                                    external.runs = getExternalRuns(os.path.join(external.directory, external.parameterfile), external)
-
-                                    # (pre) externals (3): loop over all combinations and parameterfiles for the i'th external
-                                    for self.externalrun_count, externalrun in enumerate(external.runs, start=1):
-                                        log.info(str(externalrun))
-
-                                        # (pre) externals (3.1): run the external binary
-                                        # check if meshes should be reused with symbolic links for each command line of example
-                                        if args.meshesdir:
-                                            # check if externalbinary is set in self.MeshGeneration and should be executed only once, since other externals should be executed normally
-                                            # we also save which MeshGenerator is matched to get the file ending
-                                            self.Matched_Generator_Name = next((Generator_Name for Generator_Name in self.MeshGeneration.keys() if Generator_Name in externalbinary), None)
-                                            if self.Matched_Generator_Name:
-                                                externalcmd = self.mesh_external(run, external, externalrun, build, args)
-                                            # execute other externals normally and also hopr every run if hopr binary has random name
-                                            else:
-                                                externalcmd = externalrun.execute(build, external, args)
-                                        # execute each external each run normally
-                                        else:
-                                            externalcmd = externalrun.execute(build, external, args)
-
-                                        if not externalrun.successful:
-                                            external_failed = True
-                                            s = tools.red('Execution (pre) external failed: %s' % externalcmd)
-                                            run.externals_errors.append(s)
-                                            print("ExternalRun.total_errors = %s" % (ExternalRun.total_errors))
-                                            ExternalRun.total_errors += 1  # add error if externalrun fails
-                                            # Check if immediate stop is activated on failure
-                                            if args.stop:
-                                                s = tools.red('Stop on first error (-p, --stop) is activated! Execution (pre) external failed')
-                                                print(s)
-                                                exit(1)
-                                        # add external runtime
-                                        run.externals_time += externalrun.walltime
-
-                            if PreprocessingActive:
-                                print(tools.indent(tools.green('Preprocessing: Externals %s finished!' % externalbinaries), 3))
-
-                            # 4.2    execute the binary file for one combination of parameters
-                            run.execute(build, command_line, args, external_failed)
-                            if not run.successful:
-                                Run.total_errors += 1  # add error if run fails
-                                # Check if immediate stop is activated on failure
-                                if args.stop:
-                                    s = tools.red('Stop on first error (-p, --stop) is activated! Execution of run failed')
-                                    print(s)
-                                    exit(1)
-
-                            # (post) externals (1): loop over all externals available in external.ini
-                            if run.externals_post is None:
-                                PostprocessingActive = False
-                            else:
-                                if len(run.externals_post) == 0:
-                                    PostprocessingActive = False
-                                else:
-                                    PostprocessingActive = True
-                                    externalbinaries = [external.parameters.get("externalbinary") for external in run.externals_post]
-                                    print(tools.indent(tools.green('Postprocessing: Started  %s post-externals' % externalbinaries), 3))
-
-                            for external in run.externals_post:
-                                log.info(str(external))
-
-                                # (post) externals (1.1): get the path and the parameterfiles to the i'th external
-                                externaldirectory = external.parameters.get("externaldirectory")
-                                if externaldirectory.endswith('.ini'):
-                                    external.directory = run.target_directory
-                                    external.parameterfiles = [externaldirectory]
-                                else:
-                                    external.directory = os.path.join(run.target_directory, externaldirectory)
-                                    external.parameterfiles = [i for i in os.listdir(external.directory) if i.endswith('.ini')]
-
-                                # externalbinary = external.parameters.get("externalbinary")
-
-                                # (post) externals (2): loop over all parameterfiles available for the i'th external
-                                for external.parameterfile in external.parameterfiles:  # noqa: B020 loop control variable external overrides iterable it iterates
-                                    # (post) externals (2.1): consider combinations
-                                    external.runs = getExternalRuns(os.path.join(external.directory, external.parameterfile), external)
-
-                                    # (post) externals (3): loop over all combinations and parameterfiles for the i'th external
-                                    for externalrun in external.runs:
-                                        log.info(str(externalrun))
-
-                                        # (post) externals (3.1): run the external binary
-                                        externalcmd = externalrun.execute(build, external, args)
-                                        if not externalrun.successful:
-                                            # print(externalrun.return_code)
-                                            s = tools.red('Execution (post) external failed: %s' % externalcmd)
-                                            run.externals_errors.append(s)
-                                            ExternalRun.total_errors += 1  # add error if externalrun fails
-                                            # Check if immediate stop is activated on failure
-                                            if args.stop:
-                                                s = tools.red('Stop on first error (-p, --stop) is activated! Execution (post) external failed')
-                                                print(s)
-                                                exit(1)
-                                        # add external runtime
-                                        run.externals_time += externalrun.walltime
-
-                            if PostprocessingActive:
-                                print(tools.indent(tools.green('Postprocessing: Externals %s finished!' % externalbinaries), 3))
-
-                            # 4.3 Remove unwanted files: run analysis directly after each run (as opposed to the normal analysis which is used for analyzing the created output)
-                            for analyze in example.analyzes:
-                                if isinstance(analyze, Clean_up_files):
-                                    analyze.execute(run)
+                        if num_processes != 1:
+                            self.perform_runs_in_parallel(build, example, args, num_processes)
+                        else:
+                            for RunCount, run in enumerate(self.command_line.runs, start=1):
+                                self.perform_single_run(build, example, args, (RunCount, len(self.command_line.runs), run))
 
                         # 5.   loop over all successfully executed binary results and perform analyze tests
-                        runs_successful = [run for run in command_line.runs if run.successful]
+                        runs_successful = [run for run in self.command_line.runs if run.successful]
                         if runs_successful:  # do analysis only if runs_successful is not empty
                             for analyze in example.analyzes:
                                 if isinstance(analyze, Clean_up_files) or isinstance(analyze, Analyze_compare_across_commands):
@@ -1608,3 +1510,201 @@ class PerformCheck:
             print("run 'reggie' with the command line option '-c/--carryon' to skip successful builds.")
             tools.finalize(start, 1, Run.total_errors, Analyze.total_errors, Analyze.total_infos)
             exit(1)
+
+    def perform_runs_in_parallel(self, build, example, args, num_processes):
+        original_meshesdir = args.meshesdir
+        try:
+            # overwrite sys.stdout with local class to allow thread local print statements
+            sys.stdout = ThreadSafeStdout()
+            if args.coverage:
+                s = tools.red('Code coverage in combination with parallel execution not tested yet!')
+                print(tools.indent(s, 1))
+
+            runs_to_process = list(self.command_line.runs)
+            start_idx = 1
+            if args.meshesdir:
+                # OPTIMIZE: only perform the first run separatly, if externals are actually used. Otherwise all can be performed in parallel directly
+                #     Problem: at this point the externals are "not known" (especially which external belongs to the current run and if external is building a mesh)
+                #              so does the speed up justify the lookup of externals here?
+                if len(runs_to_process) > num_processes:
+                    # only perform first run separatley if remaining runs exceed number of processes, otherwise just run the mesh generation for each process, since this will be faster if all are possible in parallel
+                    # OPTIMIZE: this is unfortunate for very short runs with a large number of externals (e.g. conv test, where 7 runs are performed and therefore 7 meshes created)
+                    # -> it probably would still be faster the execute the first separately to get the 7 meshes)
+                    # Problem: it would need knowledge off the number of externalruns and also how expensive they are
+                    s = tools.yellow('Executing first run separately to create meshes only once!')
+                    print(tools.indent(s, 1))
+                    first_run = runs_to_process.pop(0)
+                    self.perform_single_run(build, example, args, (1, len(self.command_line.runs), first_run), run_in_parallel=False)
+                    start_idx = 2
+                else:
+                    s = tools.yellow(f'Ignoring meshesdir(={args.meshesdir}), since nunber of runs(={len(runs_to_process)}) is smaller than number of cores={getMaxCPUCores()}')
+                    print(tools.indent(s, 1))
+                    args.meshesdir = False
+
+            # format function and arguments to pass to pool
+            run_func = partial(self.perform_single_run, build, example, args, run_in_parallel=True)
+            run_args = ((i, len(self.command_line.runs), r) for i, r in enumerate(runs_to_process, start=start_idx))
+            with ThreadPool(processes=num_processes) as pool:
+                for run_results in pool.imap_unordered(run_func, run_args):
+                    print(run_results['reggie_stdout'], end='', flush=True)
+
+        except Exception as e:
+            print(e)
+        finally:
+            # if args.meshesdir was set to False for the current command line (since #runs<#Cores), reset it to the original value for the next command line
+            args.meshesdir = original_meshesdir
+
+    def perform_single_run(self, build, example, args, run_data, run_in_parallel=False):
+        '''
+        This function executes a single run for either the serial or parallel case.
+
+        To maintain functionality for serial execution, new features or states should be
+        stored as instance attributes (e.g., `run.successful`), which are later read by
+        modules like summary.py.
+
+        The thread based parallelization allows the main python process to collect all
+        attributes (which would not be possible for a process pool).
+        '''
+
+        # Capture standard output during parallel execution to prevent print statements from overlapping
+        if run_in_parallel:
+            ThreadStdout = io.StringIO()
+            sys.stdout.local.stream = ThreadStdout
+
+        try:
+            RunCount, NbrOfRuns, run = run_data
+            # collect different runtimes (from externals and main run)
+            run.externals_time = 0
+            self.RunCount = RunCount
+            print(tools.indent('Run %s of %s' % (RunCount, NbrOfRuns), 1))
+            # log.info(str(run))
+            # Database linking
+            if self.database_path is not None and os.path.exists(run.target_directory):
+                head, tail = os.path.split(self.database_path)
+                os.symlink(self.database_path, os.path.join(run.target_directory, tail))
+                print(tools.indent(tools.green('Preprocessing: Linked database [%s] to [%s] ... ' % (self.database_path, run.target_directory)), 2))
+            # CVAE scattering linking
+            if self.cvae_scattering_cvae is not None and os.path.exists(run.target_directory):
+                head, tail = os.path.split(self.cvae_scattering_cvae)
+                os.symlink(self.cvae_scattering_cvae, os.path.join(run.target_directory, tail))
+                print(tools.indent(tools.green('Preprocessing: Linked CVAE scattering cvae file [%s] to [%s] ... ' % (self.cvae_scattering_cvae, run.target_directory)), 2))
+
+            # 4.1 read the external options in 'externals.ini' within each example directory (e.g. eos, hopr, posti)
+            #     distinguish between pre- and post processing
+            run.externals_pre, run.externals_post, run.externals_errors = getExternals(os.path.join(run.source_directory, 'externals.ini'), run, build)
+
+            # (pre) externals: loop over all externals available in external.ini
+            external_failed = False
+            if run.externals_pre is None:
+                PreprocessingActive = False
+            else:
+                if len(run.externals_pre) == 0:
+                    PreprocessingActive = False
+                else:
+                    PreprocessingActive = True
+                    externalbinaries = [external.parameters.get("externalbinary") for external in run.externals_pre]
+                    print(tools.indent(tools.green('Preprocessing: Started  %s pre-externals' % externalbinaries), 3))
+
+            if PreprocessingActive:
+                for self.external_count, external in enumerate(run.externals_pre):
+                    # use |= (bitwise or assignment) to check save if at least one external has failed
+                    external_failed |= self.perform_external(external, run, build, args, stage='pre')
+                print(tools.indent(tools.green('Preprocessing: Externals %s finished!' % externalbinaries), 3))
+                if not run_in_parallel:
+                    # mesh creation only possible for single core runs, so keep track if all meshes are created or still needs to be done
+                    # this is only checked after all externals have been executed for the current run, since its possible to create more than one mesh in a single run (e.g. convergence tests)
+                    self.mesh_externals_done = True
+
+            # 4.2    execute the binary file for one combination of parameters
+            run.execute(build, self.command_line, args, external_failed)
+            if not run.successful:
+                Run.total_errors += 1  # add error if run fails
+                # Check if immediate stop is activated on failure
+                if args.stop:
+                    s = tools.red('Stop on first error (-p, --stop) is activated! Execution of run failed')
+                    print(s)
+                    exit(1)
+
+            # (post) externals: loop over all externals available in external.ini
+            if run.externals_post is None:
+                PostprocessingActive = False
+            else:
+                if len(run.externals_post) == 0:
+                    PostprocessingActive = False
+                else:
+                    PostprocessingActive = True
+                    externalbinaries = [external.parameters.get("externalbinary") for external in run.externals_post]
+                    print(tools.indent(tools.green('Postprocessing: Started  %s post-externals' % externalbinaries), 3))
+
+            if PostprocessingActive:
+                for self.external_count, external in enumerate(run.externals_post):
+                    self.perform_external(external, run, build, args, stage='post')
+                print(tools.indent(tools.green('Postprocessing: Externals %s finished!' % externalbinaries), 3))
+
+            # 4.3 Remove unwanted files: run analysis directly after each run (as opposed to the normal analysis which is used for analyzing the created output)
+            for analyze in example.analyzes:
+                if isinstance(analyze, Clean_up_files):
+                    analyze.execute(run)
+
+            if run_in_parallel:
+                stdout_content = ThreadStdout.getvalue()
+                ThreadStdout.close()
+                return {'reggie_stdout': stdout_content}
+
+        # delete thread level std to ensure correct print statements even if runs fails
+        finally:
+            if hasattr(sys.stdout, 'local') and hasattr(sys.stdout.local, 'stream'):
+                del sys.stdout.local.stream
+
+    def perform_external(self, external, run, build, args, stage='pre'):
+        external_failed = False
+        # (1): get the path and the parameterfiles to the external
+        externaldirectory = external.parameters.get("externaldirectory")
+        if externaldirectory.endswith('.ini'):
+            external.directory = run.target_directory
+            external.parameterfiles = [externaldirectory]
+        else:
+            external.directory = os.path.join(run.target_directory, externaldirectory)
+            external.parameterfiles = [i for i in os.listdir(external.directory) if i.endswith('.ini')]
+
+        externalbinary = external.parameters.get("externalbinary")
+
+        # (2): loop over all parameterfiles available for the external
+        for self.externalparameterfile_count, external.parameterfile in enumerate(external.parameterfiles):  # noqa: B020
+            # (2.1): consider combinations
+            external.runs = getExternalRuns(os.path.join(external.directory, external.parameterfile), external)
+
+            # (3): loop over all combinations and parameterfiles for the external
+            for self.externalrun_count, externalrun in enumerate(external.runs, start=1):
+                # (3.1): run the external binary, use |= (bitwise or assignment) to check save if at least one external has failed
+                external_failed |= self.perform_externalrun(externalrun, args, run, external, build, externalbinary, stage=stage)
+
+        return external_failed
+
+    def perform_externalrun(self, externalrun, args, run, external, build, externalbinary, stage='pre'):
+        # check if meshes should be reused with symbolic links for each command line of example (only for pre stage)
+        if stage == 'pre' and args.meshesdir:
+            # check if externalbinary is set in self.MeshGeneration and should be executed only once
+            self.Matched_Generator_Name = next((Generator_Name for Generator_Name in self.MeshGeneration.keys() if Generator_Name in externalbinary), None)
+            if self.Matched_Generator_Name:
+                externalcmd = self.mesh_external(run, external, externalrun, build, args)
+            else:
+                externalcmd = externalrun.execute(build, external, args)
+        else:
+            externalcmd = externalrun.execute(build, external, args)
+
+        external_run_failed = False
+        if not externalrun.successful:
+            external_run_failed = True
+            s = tools.red('Execution (%s) external failed: %s' % (stage, externalcmd))
+            run.externals_errors.append(s)
+            ExternalRun.total_errors += 1  # add error if externalrun fails
+            # Check if immediate stop is activated on failure
+            if args.stop:
+                s = tools.red('Stop on first error (-p, --stop) is activated! Execution (%s) external failed' % stage)
+                print(s)
+                exit(1)
+
+        # add external runtime
+        run.externals_time += externalrun.walltime
+        return external_run_failed

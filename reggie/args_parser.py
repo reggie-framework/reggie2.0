@@ -82,7 +82,7 @@ def getMaxCPUCores():
                         physical_cores[(physical_id, core_id)] = True
 
         # Count unique (physical_id, core_id) pairs
-        print(len(physical_cores))
+        # print(len(physical_cores))
         return len(physical_cores)
     except Exception:
         pass
