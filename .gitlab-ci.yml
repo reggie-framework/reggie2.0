@@ -78,7 +78,7 @@ ruff:
     - python -m pip install ruff
     # Ruff linter
     - ruff --version
-    - ruff check --target-version=py310 --extend-ignore=E201,E202,E203,E221,E222,E225,E231,E271,E272 --line-length=132 --preview reggie
+    - ruff check --config pyproject.toml --preview reggie
 
 ty:
   extends: .defaults
@@ -91,14 +91,14 @@ ty:
     - ty --version
     - ty check --color always --project reggie
 
-# vulture:
-#   extends: .defaults
-#   stage: lint
-#   before_script: *minimal-before-script
-#   script:
-#     - python -m pip install vulture
-#     - vulture --version
-#     - vulture reggie
+vulture:
+  extends: .defaults
+  stage: lint
+  before_script: *minimal-before-script
+  script:
+    - python -m pip install vulture
+    - vulture --version
+    - vulture --config pyproject.toml reggie
 
 # ----------------------------------------------------------------------------------------------------------------------------------------------------
 # Compatibility
@@ -155,8 +155,6 @@ github:
     - rm -rf reggie_github || true ;
     - git clone -b master --single-branch git@piclas.boltzplatz.eu:reggie2.0/reggie2.0.git reggie_github ;
     - cd reggie_github ;
-    - git remote add piclas-framework git@github.com-reggie2.0:piclas-framework/reggie2.0.git ;
-    - git push --force --follow-tags piclas-framework master ;
     - git remote add reggie-framework git@github.com-framework-reggie2.0:reggie-framework/reggie2.0.git ;
     - git push --force --follow-tags reggie-framework master ;
   rules:

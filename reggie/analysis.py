@@ -746,13 +746,8 @@ class Analyze_Convtest_h(Analyze):
             if pyplot_module_loaded:  # this boolean is set when importing matplotlib.pyplot
                 f = plt.figure()  # create figure
                 for i in range(nVar):
-                    if False:
-                        self.grid_spacing = [1.0 / ((p + 1) * float(x)) for x in self.cells]
-                        plt.plot(self.grid_spacing, L2_errors[i], 'ro-')  # create plot
-                        plt.xlabel('Average grid spacing for unit domain length L_domain=1')  # set x-label
-                    else:
-                        plt.plot(self.cells, L2_errors[i], 'ro-')  # create plot
-                        plt.xlabel('Number of cells')  # set x-label
+                    plt.plot(self.cells, L2_errors[i], 'ro-')  # create plot
+                    plt.xlabel('Number of cells')  # set x-label
                     if min(L2_errors[i]) > 0.0:  # log plot only if greater zero
                         plt.xscale('log')  # set x-axis to log scale
                         plt.yscale('log')  # set y-axis to log scale
@@ -970,13 +965,8 @@ class Analyze_Convtest_t(Analyze):
             if pyplot_module_loaded:  # this boolean is set when importing matplotlib.pyplot
                 f = plt.figure()  # create figure
                 for i in range(nVar):
-                    if False:
-                        self.grid_spacing = [1.0 / ((self.order) * float(x)) for x in self.x_values]
-                        plt.plot(self.grid_spacing, L2_errors[i], 'ro-')  # create plot
-                        plt.xlabel('Average grid spacing for unit domain length L_domain=1')  # set x-label
-                    else:
-                        plt.plot(self.x_values, L2_errors[i], 'ro-')  # create plot
-                        plt.xlabel(f'x: {self.name}')  # set x-label
+                    plt.plot(self.x_values, L2_errors[i], 'ro-')  # create plot
+                    plt.xlabel(f'x: {self.name}')  # set x-label
                     if min(L2_errors[i]) > 0.0:  # log plot only if greater zero
                         plt.xscale('log')  # set x-axis to log scale
                         plt.yscale('log')  # set y-axis to log scale
@@ -1149,13 +1139,10 @@ class Analyze_Convtest_p(Analyze):
             for j in range(nVar):
                 increasing_run = [L2_order[j][i] > L2_order[j][i - 1] for i in range(1, len(p) - 1)]  # check for increasing order of convergence
                 print(increasing_run)
-                if True:
-                    if abs(float(len(increasing_run))) > 0:
-                        increasing.append(float(sum(increasing_run)) / float(len(increasing_run)))
-                    else:
-                        increasing.append(0.0)
+                if abs(float(len(increasing_run))) > 0:
+                    increasing.append(float(sum(increasing_run)) / float(len(increasing_run)))
                 else:
-                    increasing.append(all(increasing_run))
+                    increasing.append(0.0)
             print(tools.blue("Increasing order of convergence, percentage"))
             print(5 * " " + "".join(str(increasing[i]).rjust(21) for i in range(nVar)))
 
@@ -1624,11 +1611,12 @@ class Analyze_h5diff(Analyze, ExternalCommand):
                                                 f.close()
                                                 return list(variable_names).index(variable_name.lower())
                                             print(f"Variable name '{variable_name}' not found in dimension names.")
-                                            return None
-                                        print(f"No '{variable_attribute}' attribute found in dataset '{dataset_path}'.")
-                                        return None
+                                        else:
+                                            print(f"No '{variable_attribute}' attribute found in dataset '{dataset_path}'.")
                                     except KeyError:
                                         print(f"Dataset '{dataset_path}' not found in the file.")
+                                        return None
+                                    else:
                                         return None
 
                                 dim1 = get_variable_dimension(f1, data_set_loc_file, var_attribute_loc, var_name_loc)

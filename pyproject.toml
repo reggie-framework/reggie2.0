@@ -12,10 +12,11 @@ dependencies = [
     "h5py>=3.13.0",
     "matplotlib>=3.1.2",
     "vtk>=9.4.0",
-    # "pre-commit>=4.1.0",
+    "pre-commit>=4.1.0",
     "scipy>=1.15.3",
     "gcovr>=8.4",
     "coverage>=7.10.7",
+    "ty>=0.0.38"
     ]
 keywords = [
     "regression checks",
@@ -93,7 +94,7 @@ ignore = [
   "PLR0402",  # manual-from-import                 - we want every import specify the module name
   # INFO: False positives
   "RET503",   # implicit-return                    - ruff does not detect hopout.error[NoReturn]
-  # TODO: These should be fixed eventually
+  # OPTIMIZE: These should be fixed eventually
   "ANN002",   # missing-type-args                  - determine non-trivial types
   "BLE001",   # blind-except                       - narrow errors and exceptions
   "S110",     # try-except-pass                    - implement feature.logger branch
@@ -122,4 +123,6 @@ unused-ignore-comment      = 'ignore'
 paths = [
     "reggie",
 ]
+# OPTIMIZE: might reduce percentage
+min_confidence = 70
 sort_by_size = true
