@@ -182,7 +182,7 @@ def SummaryOfErrors(builds, args):
                         elif key == "MPI" and any([args.noMPI, args.noMPIautomatic]):
                             print(tools.yellow("1".ljust(value)), end=' ')  # skip linebreak
                         elif key == "MPI" and run.outputMPIyellow:
-                            print(tools.yellow('%s' % run.output_strings[key].ljust(value)), end=' ')  # skip linebreak
+                            print(tools.yellow(f'{run.output_strings[key].ljust(value)}'), end=' ')  # skip linebreak
                         elif key == "path" and hasattr(run, 'path_coloured'):
                             # use run.output_strings['path'] to get visible length of path for padding calculation, since ansi codes changes length of string
                             padding = max(0, value - len(run.output_strings[key]))

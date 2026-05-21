@@ -1327,7 +1327,7 @@ class PerformCheck:
                         if self.database_path is not None:
                             self.database_path = os.path.abspath(os.path.join(example.source_directory, self.database_path))
                             if not os.path.exists(self.database_path):
-                                s = tools.red("command_line.ini: cannot find file=[%s] " % (self.database_path))
+                                s = tools.red(f'command_line.ini: cannot find file=[{self.database_path}]')
                                 print(s)
                                 sys.exit(1)
                         # CVAE scattering linking
@@ -1335,7 +1335,7 @@ class PerformCheck:
                         if self.cvae_scattering_cvae is not None:
                             self.cvae_scattering_cvae = os.path.abspath(os.path.join(example.source_directory, self.cvae_scattering_cvae))
                             if not os.path.exists(self.cvae_scattering_cvae):
-                                s = tools.red("command_line.ini: cannot find file=[%s] " % (self.cvae_scattering_cvae))
+                                s = tools.red(f'command_line.ini: cannot find file=[{self.cvae_scattering_cvae}]')
                                 print(s)
                                 sys.exit(1)
 
@@ -1458,7 +1458,7 @@ class PerformCheck:
 
             print("run 'reggie' with the command line option '-c/--carryon' to skip successful builds.")
             tools.finalize(start, 1, Run.total_errors, Analyze.total_errors, Analyze.total_infos)
-            exit(1)
+            sys.exit(1)
 
     def perform_runs_in_parallel(self, build, example, args, num_processes):
         original_meshesdir = args.meshesdir
@@ -1525,18 +1525,18 @@ class PerformCheck:
             # collect different runtimes (from externals and main run)
             run.externals_time = 0
             self.RunCount = RunCount
-            print(tools.indent('Run %s of %s' % (RunCount, NbrOfRuns), 1))
+            print(tools.indent(f'Run {RunCount} of {NbrOfRuns}', 1))
             # log.info(str(run))
             # Database linking
             if self.database_path is not None and os.path.exists(run.target_directory):
-                head, tail = os.path.split(self.database_path)
+                _, tail = os.path.split(self.database_path)
                 os.symlink(self.database_path, os.path.join(run.target_directory, tail))
-                print(tools.indent(tools.green('Preprocessing: Linked database [%s] to [%s] ... ' % (self.database_path, run.target_directory)), 2))
+                print(tools.indent(tools.green(f'Preprocessing: Linked database [{self.database_path}] to [{run.target_directory}] ... '), 2))
             # CVAE scattering linking
             if self.cvae_scattering_cvae is not None and os.path.exists(run.target_directory):
-                head, tail = os.path.split(self.cvae_scattering_cvae)
+                _, tail = os.path.split(self.cvae_scattering_cvae)
                 os.symlink(self.cvae_scattering_cvae, os.path.join(run.target_directory, tail))
-                print(tools.indent(tools.green('Preprocessing: Linked CVAE scattering cvae file [%s] to [%s] ... ' % (self.cvae_scattering_cvae, run.target_directory)), 2))
+                print(tools.indent(tools.green(f'Preprocessing: Linked CVAE scattering cvae file [{self.cvae_scattering_cvae}] to [{run.target_directory}] ... '), 2))
 
             # 4.1 read the external options in 'externals.ini' within each example directory (e.g. eos, hopr, posti)
             #     distinguish between pre- and post processing
@@ -1552,13 +1552,13 @@ class PerformCheck:
                 else:
                     PreprocessingActive = True
                     externalbinaries = [external.parameters.get("externalbinary") for external in run.externals_pre]
-                    print(tools.indent(tools.green('Preprocessing: Started  %s pre-externals' % externalbinaries), 3))
+                    print(tools.indent(tools.green(f'Preprocessing: Started  {externalbinaries} pre-externals'), 3))
 
             if PreprocessingActive:
                 for self.external_count, external in enumerate(run.externals_pre):
                     # use |= (bitwise or assignment) to check save if at least one external has failed
                     external_failed |= self.perform_external(external, run, build, args, stage='pre')
-                print(tools.indent(tools.green('Preprocessing: Externals %s finished!' % externalbinaries), 3))
+                print(tools.indent(tools.green(f'Preprocessing: Externals {externalbinaries} finished!'), 3))
                 if not run_in_parallel:
                     # mesh creation only possible for single core runs, so keep track if all meshes are created or still needs to be done
                     # this is only checked after all externals have been executed for the current run, since its possible to create more than one mesh in a single run (e.g. convergence tests)
@@ -1572,7 +1572,7 @@ class PerformCheck:
                 if args.stop:
                     s = tools.red('Stop on first error (-p, --stop) is activated! Execution of run failed')
                     print(s)
-                    exit(1)
+                    sys.exit(1)
 
             # (post) externals: loop over all externals available in external.ini
             if run.externals_post is None:
@@ -1583,12 +1583,12 @@ class PerformCheck:
                 else:
                     PostprocessingActive = True
                     externalbinaries = [external.parameters.get("externalbinary") for external in run.externals_post]
-                    print(tools.indent(tools.green('Postprocessing: Started  %s post-externals' % externalbinaries), 3))
+                    print(tools.indent(tools.green(f'Postprocessing: Started  {externalbinaries} post-externals'), 3))
 
             if PostprocessingActive:
                 for self.external_count, external in enumerate(run.externals_post):
                     self.perform_external(external, run, build, args, stage='post')
-                print(tools.indent(tools.green('Postprocessing: Externals %s finished!' % externalbinaries), 3))
+                print(tools.indent(tools.green(f'Postprocessing: Externals {externalbinaries} finished!'), 3))
 
             # 4.3 Remove unwanted files: run analysis directly after each run (as opposed to the normal analysis which is used for analyzing the created output)
             for analyze in example.analyzes:
@@ -1642,14 +1642,14 @@ class PerformCheck:
         external_run_failed = False
         if not externalrun.successful:
             external_run_failed = True
-            s = tools.red('Execution (%s) external failed: %s' % (stage, externalcmd))
+            s = tools.red(f'Execution ({stage}) external failed: {externalcmd}')
             run.externals_errors.append(s)
             ExternalRun.total_errors += 1  # add error if externalrun fails
             # Check if immediate stop is activated on failure
             if args.stop:
-                s = tools.red('Stop on first error (-p, --stop) is activated! Execution (%s) external failed' % stage)
+                s = tools.red(f'Stop on first error (-p, --stop) is activated! Execution ({stage}) external failed')
                 print(s)
-                exit(1)
+                sys.exit(1)
 
         # add external runtime
         run.externals_time += externalrun.walltime
