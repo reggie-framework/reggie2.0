@@ -16,6 +16,13 @@
 # Continuous Integration/Continuous Deployment
 # ==================================================================================================================================
 
+spec:
+  inputs:
+    DO_DEPLOY:
+      type: boolean
+      description: "Push the master branch to the reggie-framework/reggie2.0 repository on github"
+      default: false
+---
 # Official language image. Look for the different tagged releases at:
 # > https://hub.docker.com/r/library/python/tags/
 image: python:3.14-bookworm
@@ -151,11 +158,11 @@ python:3.14:
 github:
   stage: deploy
   script:
-    - if [ -z "${DO_DEPLOY}" ]; then exit ; fi
+    - if [ "$[[ inputs.DO_DEPLOY ]]" == "false" ]; then exit ; fi
     - rm -rf reggie_github || true ;
     - git clone -b master --single-branch git@piclas.boltzplatz.eu:reggie2.0/reggie2.0.git reggie_github ;
     - cd reggie_github ;
     - git remote add reggie-framework git@github.com-framework-reggie2.0:reggie-framework/reggie2.0.git ;
     - git push --force --follow-tags reggie-framework master ;
   rules:
-    - if: '$DO_DEPLOY'
+    - if: $[[ inputs.DO_DEPLOY ]] == true
