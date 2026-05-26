@@ -28,6 +28,7 @@ pre-commit = ">=4.1.0"
 scipy = ">=1.15.3"
 gcovr = ">=8.4"
 coverage = ">=7.10.7"
+typing-extensions = ">=4.0.0"
 
 [tool.poetry.scripts]
 reggie = "reggie.reggie:main"
