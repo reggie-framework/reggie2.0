@@ -10,8 +10,9 @@
 #
 # You should have received a copy of the GNU General Public License along with reggie2.0. If not, see <http://www.gnu.org/licenses/>.
 # ==================================================================================================================================
-from externalcommand import ExternalCommand
+from externalcommand import ExternalCommand  # ty:ignore[unresolved-import]
 from timeit import default_timer as timer
+import sys
 
 
 class bcolors:
@@ -63,9 +64,9 @@ def finalize(start, run_errors):
         end = timer()
         print("in [%2.2f sec]" % (end - start))
     else:
-        print("")
+        print()
 
-    print("Number of run     errors: %d" % run_errors)
+    print(f"Number of run     errors: {run_errors:d}")
 
     print('=' * 132 + bcolors.ENDC)
-    exit(return_code)
+    sys.exit(return_code)

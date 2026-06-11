@@ -23,14 +23,11 @@ class OutputDirectory:
         self.parent = parent
 
         # set parent directory for subfolder creation
-        if self.parent:
-            parent_dir = self.parent.target_directory
-        else:
-            parent_dir = OutputDirectory.output_dir
+        parent_dir = self.parent.target_directory if self.parent else OutputDirectory.output_dir
 
         # numbering of directory (if a number is supplied)
         if number >= 0:
-            self.target_directory = os.path.join(parent_dir, "%s_%04d" % (name, number))
+            self.target_directory = os.path.join(parent_dir, f"{name:s}_{number:04d}")
         else:
             self.target_directory = os.path.join(parent_dir, name)
 

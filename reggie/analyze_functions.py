@@ -87,10 +87,7 @@ def get_cpu_per_dof(lines):
 
 def calcOrder_h(h, E, invert_h=False):
     """Determine the order of convergence for a list of grid spacings h and errors E"""
-    if invert_h:
-        h = [1.0 / float(elem) for elem in h]
-    else:
-        h = [float(elem) for elem in h]
+    h = [1.0 / float(elem) for elem in h] if invert_h else [float(elem) for elem in h]
     E = [float(elem) for elem in E]
     if len(h) != len(E):
         return -1

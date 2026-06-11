@@ -10,14 +10,15 @@
 #
 # You should have received a copy of the GNU General Public License along with reggie2.0. If not, see <http://www.gnu.org/licenses/>.
 # ==================================================================================================================================
-from __future__ import print_function  # required for print() function with line break via "end=' '"
 from timeit import default_timer as timer
 import os
+import sys
 import collections
 
 from reggie import check
 from reggie import tools
 from reggie.outputdirectory import OutputDirectory
+from itertools import starmap
 
 
 def StartsWithCMD(pathSplit, iDir):
@@ -67,25 +68,25 @@ def SummaryOfErrors(builds, args):
                     # Check number of variations in parameter list(run.digits.items())[0][1]
                     restart_file = command_line.parameters.get('restart_file', None)
                     run.restart_file_used = False
-                    if list(run.digits.items())[0][1] > 0:
-                        run.output_strings['options'] += "%s=%s" % (list(run.parameters.items())[0])  # print parameter and value as [parameter]=[value]
+                    if next(iter(run.digits.items()))[1] > 0:
+                        run.output_strings['options'] += "{}={}".format(*next(iter(run.parameters.items())))  # print parameter and value as [parameter]=[value]
                     elif restart_file:  # if no parameter is varied, check if the restart file is used
                         run.restart_file_used = True
                         if restart_file != restart_file_old:  # only display once
-                            run.output_strings['options'] += "%s=%s" % ('restart_file', restart_file)  # print parameter and value as [parameter]=[value]
+                            run.output_strings['options'] += "{}={}".format('restart_file', restart_file)  # print parameter and value as [parameter]=[value]
                             restart_file_old = restart_file
 
                     # fmt: off
                     run.output_strings['path']    = os.path.relpath(run.target_directory,OutputDirectory.output_dir)
                     run.output_strings['MPI']     = command_line.parameters.get('MPI', '-')
-                    run.output_strings['time']    = "%2.1f" % run.walltime
-                    run.output_strings['ext']     = "%2.1f" % run.externals_time
+                    run.output_strings['time']    = f"{run.walltime:2.1f}"
+                    run.output_strings['ext']     = f"{run.externals_time:2.1f}"
                     run.output_strings['Info']    = run.result
                     run.outputMPIyellow = False
                     # fmt: on
 
                     # get the max lens before adding ansi color escape codes (which changes the string length)
-                    for key in run.output_strings.keys():
+                    for key in run.output_strings:
                         max_lens[key] = max(max_lens[key], len(run.output_strings[key]))  # set max column widths for summary table
 
                     # Coloured path name
@@ -96,9 +97,9 @@ def SummaryOfErrors(builds, args):
                         for iDir, iDirName in enumerate(pathSplit):
                             foundCMD = StartsWithCMD(pathSplit, iDir)
                             if foundCMD:
-                                pathColoured += delimiter + '%s' % tools.pink(iDirName)
+                                pathColoured += delimiter + f'{tools.pink(iDirName)}'
                             else:
-                                pathColoured += delimiter + '%s' % iDirName
+                                pathColoured += delimiter + f'{iDirName}'
                             delimiter = '/'
                         run.path_coloured = pathColoured
                     except Exception:
@@ -109,10 +110,10 @@ def SummaryOfErrors(builds, args):
                             try:
                                 cores = command_line.parameters.get('MPI', '-')
                                 if int(cores) > 1:
-                                    run.output_strings['MPI'] = '%s (changed from %s)' % (1, run.output_strings['MPI'])
+                                    run.output_strings['MPI'] = '{} (changed from {})'.format(1, run.output_strings['MPI'])
                                     run.outputMPIyellow = True
                             except Exception:
-                                run.output_strings['MPI'] = '%s (changed from %s)' % (1, run.output_strings['MPI'])
+                                run.output_strings['MPI'] = '{} (changed from {})'.format(1, run.output_strings['MPI'])
                                 run.outputMPIyellow = True
                     except Exception:
                         pass
@@ -122,10 +123,10 @@ def SummaryOfErrors(builds, args):
                         try:
                             cores = command_line.parameters.get('MPI', '-')
                             if int(cores) > args.MaxCores and args.MaxCores > 0:
-                                run.output_strings['MPI'] = '%s (changed from %s)' % (args.MaxCores, run.output_strings['MPI'])
+                                run.output_strings['MPI'] = '{} (changed from {})'.format(args.MaxCores, run.output_strings['MPI'])
                                 run.outputMPIyellow = True
                         except Exception:
-                            run.output_strings['MPI'] = '%s (changed from %s)' % (args.MaxCores, run.output_strings['MPI'])
+                            run.output_strings['MPI'] = '{} (changed from {})'.format(args.MaxCores, run.output_strings['MPI'])
                             run.outputMPIyellow = True
                     except Exception:
                         pass
@@ -136,7 +137,7 @@ def SummaryOfErrors(builds, args):
     spacing = 1
     for key, value in list(max_lens.items()):
         print(key.ljust(value), spacing * ' ', end=' ')  # skip linebreak
-    print("")
+    print()
 
     # 3. loop over alls builds
     for build in builds:
@@ -145,7 +146,7 @@ def SummaryOfErrors(builds, args):
         if isinstance(build, check.Standalone):
             print("Binary supplied externally under ", build.binary_path)
         elif isinstance(build, check.Build):
-            print("Build %d of %d (%s) compiled with in [%.2f sec]:" % (build.number, len(builds), build.result, build.walltime))
+            print(f"Build {build.number:d} of {len(builds):d} ({build.result:s}) compiled with in [{build.walltime:.2f} sec]:")
             print(" ".join(build.cmake_cmd_color))
             if build.return_code != 0:  # stop output as soon as a failed build in encountered
                 break
@@ -156,17 +157,17 @@ def SummaryOfErrors(builds, args):
                 for run in command_line.runs:
                     # 3.2.1 print separation line only if MPI threads change
                     if run.output_strings["MPI"] != str_MPI_old:
-                        print("")
+                        print()
                         str_MPI_old = run.output_strings["MPI"]
                     # 3.2.2 print the run parameters, except the inner most (this one is displayed in # 3.2.3)
                     paramsWithMultipleValues = [item for item in list(run.parameters.items())[1:] if run.digits[item[0]] > 0]
-                    param_str = ", ".join(["%s=%s" % item for item in paramsWithMultipleValues])  # skip first index
+                    param_str = ", ".join(list(starmap("{}={}".format, paramsWithMultipleValues)))  # skip first index
                     restart_file = command_line.parameters.get('restart_file', None)
                     if not param_str_old.startswith(param_str) or len(param_str_old) == 0:  # Only print when the parameter set changes
                         if restart_file and not run.restart_file_used and restart_file != restart_file_old:  # Add restart file once
                             if len(param_str) > 0:
                                 param_str += ", "
-                            param_str += "%s=%s" % ('restart_file', restart_file)
+                            param_str += "{}={}".format('restart_file', restart_file)
                             restart_file_old = restart_file
                         if len(param_str) > 0:
                             print("".ljust(max_lens["#run"]), spacing * ' ', tools.yellow(param_str))
@@ -181,7 +182,7 @@ def SummaryOfErrors(builds, args):
                         elif key == "MPI" and any([args.noMPI, args.noMPIautomatic]):
                             print(tools.yellow("1".ljust(value)), end=' ')  # skip linebreak
                         elif key == "MPI" and run.outputMPIyellow:
-                            print(tools.yellow('%s' % run.output_strings[key].ljust(value)), end=' ')  # skip linebreak
+                            print(tools.yellow(f'{run.output_strings[key].ljust(value)}'), end=' ')  # skip linebreak
                         elif key == "path" and hasattr(run, 'path_coloured'):
                             # use run.output_strings['path'] to get visible length of path for padding calculation, since ansi codes changes length of string
                             padding = max(0, value - len(run.output_strings[key]))
@@ -190,7 +191,7 @@ def SummaryOfErrors(builds, args):
                         else:
                             print(run.output_strings[key].ljust(value), end=' ')  # skip linebreak
                         print(spacing * ' ', end=' ')  # skip linebreak
-                    print("")
+                    print()
 
                     # 3.2.4  print the analyze results line by line
                     for result in run.analyze_results:
@@ -202,7 +203,7 @@ def SummaryOfErrors(builds, args):
 
                     # print an empty line after all errors were displayed
                     if len(run.analyze_results) > 0 or len(run.externals_errors):
-                        print("")
+                        print()
 
 
 def finalize(start, build_errors, run_errors, external_run_errors, analyze_errors, analyze_infos):
@@ -229,15 +230,15 @@ def finalize(start, build_errors, run_errors, external_run_errors, analyze_error
         hours   , minutes = divmod(minutes , 60.0)
         days    , hours   = divmod(hours   , 24.0)
         # fmt: on
-        print("in [%2.2f sec] [ %02d:%02d:%02d:%02d ]" % (sec, days, hours, minutes, seconds))
+        print(f"in [{sec:2.2f} sec] [ {int(days):02d}:{int(hours):02d}:{int(minutes):02d}:{int(seconds):02d} ]")
     else:
-        print("")
+        print()
 
-    print("Number of build        errors: %d" % build_errors)
-    print("Number of run          errors: %d" % run_errors)
-    print("Number of external run errors: %d" % external_run_errors)
-    print("Number of analyze      errors: %d" % analyze_errors)
-    print("Number of analyze       infos: %d" % analyze_infos)
+    print(f"Number of build        errors: {build_errors:d}")
+    print(f"Number of run          errors: {run_errors:d}")
+    print(f"Number of external run errors: {external_run_errors:d}")
+    print(f"Number of analyze      errors: {analyze_errors:d}")
+    print(f"Number of analyze       infos: {analyze_infos:d}")
 
     print('=' * 132 + tools.bcolors.ENDC)
-    exit(return_code)
+    sys.exit(return_code)

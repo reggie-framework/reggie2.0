@@ -12,7 +12,8 @@
 # ==================================================================================================================================
 import argparse
 import os
-from sys import platform
+from sys import platform, exit
+from pathlib import Path
 import socket
 import re
 import subprocess
@@ -20,11 +21,11 @@ from reggie import tools
 from reggie import check
 from reggie.outputdirectory import OutputDirectory
 
-try:
-    # Python 2.7
-    import commands
-except Exception:
-    pass
+# try:
+#     # Python 2.7
+#     import commands
+# except Exception:
+#     pass
 
 
 def getMaxCPUCores():
@@ -37,17 +38,16 @@ def getMaxCPUCores():
     # Docker
     # > Check cpuset.cpus for Docker-specific CPU limits
     try:
-        with open('/sys/fs/cgroup/cpuset.cpus') as file:
-            line = file.read().strip()
-            cnt = 0
+        line = Path('/sys/fs/cgroup/cpuset.cpus').read_text().strip()
+        cnt = 0
 
-            # Assemble the number from the comma-separated list
-            for prt in line.split(','):
-                if '-' in prt:
-                    start, end = map(int, prt.split('-'))
-                    cnt += end - start + 1
-                else:
-                    cnt += 1
+        # Assemble the number from the comma-separated list
+        for prt in line.split(','):
+            if '-' in prt:
+                start, end = map(int, prt.split('-'))
+                cnt += end - start + 1
+            else:
+                cnt += 1
 
         if cnt > 0:
             return cnt
@@ -161,7 +161,7 @@ def getArgsAndBuilds():
     # Check OS
     if re.search('^linux', platform):
         hostname = socket.gethostname()
-        print("platform: %s, hostname: %s" % (platform, hostname))
+        print(f"platform: {platform}, hostname: {hostname}")
         if re.search('^mom[0-9]+$', hostname):
             print(tools.yellow('Automatic detection of hlrs system: Assuming aprun is used and setting args.hlrs = True'))
             args.hlrs = True
@@ -176,8 +176,8 @@ def getArgsAndBuilds():
         reggieDir = os.path.dirname(os.path.realpath(__file__))
         args.basedir = os.path.join(reggieDir, 'dummy_basedir')
         args.check = os.path.join(reggieDir, 'dummy_checks/test')
-        print("Basedir directory switched to '%s'" % args.basedir)
-        print("Check   directory switched to '%s'" % args.check)
+        print(f"Basedir directory switched to '{args.basedir}'")
+        print(f"Check   directory switched to '{args.check}'")
     else:
         # For real reggie-execution:
         # Setup basedir (containing CMakeLists.txt) by searching upward from current working directory
@@ -192,19 +192,19 @@ def getArgsAndBuilds():
 
         # Check if directory exists
         if not os.path.exists(args.check):
-            print(tools.red("Check directory not found: '%s'" % args.check))
+            print(tools.red(f"Check directory not found: '{args.check}'"))
             exit(1)
         else:
             # Check if file or link path was supplied
             if os.path.isfile(args.check):
-                print(tools.red("Check directory supplied is a file: '%s'. Please supply a directory path" % args.check))
+                print(tools.red(f"Check directory supplied is a file: '{args.check}'. Please supply a directory path"))
                 exit(1)
             # Check if directory path was supplied
             elif os.path.isdir(args.check):
                 pass
             # Check rest
             else:
-                print(tools.red("Check directory supplied is not a directory path: '%s'. Please supply a directory path" % args.check))
+                print(tools.red(f"Check directory supplied is not a directory path: '{args.check}'. Please supply a directory path"))
                 exit(1)
 
     # delete the building directory when [carryon = False] and [run = False] before getBuilds is called
@@ -217,7 +217,7 @@ def getArgsAndBuilds():
         builds = check.getBuilds(args.basedir, args.check, args.compiletype, args.singledir, args.coverage)
     else:
         if not os.path.exists(args.exe):  # check if executable exists
-            print(tools.red("No executable found under '%s'" % args.exe))
+            print(tools.red(f"No executable found under '{args.exe}'"))
             exit(1)
         else:
             builds = [check.Standalone(args.exe, args.check)]  # set builds list to contain only the supplied executable
@@ -229,11 +229,12 @@ def getArgsAndBuilds():
     args.detectedMPICH = False
     try:
         if args.MPIexe == 'mpirun':
-            try:
-                status, result = subprocess.getstatusoutput("%s -h | grep -i mpich" % args.MPIexe)
-            except Exception:
-                # Fallback for python2.7
-                status, result = commands.getstatusoutput("%s -h | grep -i mpich" % args.MPIexe)
+            status, result = subprocess.getstatusoutput(f"{args.MPIexe} -h | grep -i mpich")
+            # try:
+            #     status, result = subprocess.getstatusoutput("{} -h | grep -i mpich".format(args.MPIexe))
+            # except Exception:
+            #     # Fallback for python2.7
+            #     status, result = commands.getstatusoutput("{} -h | grep -i mpich".format(args.MPIexe))
             if len(result) > 0 and status == 0:
                 args.detectedMPICH = True
     except Exception:
@@ -243,7 +244,7 @@ def getArgsAndBuilds():
     # Set maximum number of processes/cores for mpich as over-subscription results in a massive performance drop
     if args.detectedMPICH:
         args.MaxCores = getMaxCPUCores()
-        print(tools.yellow('WARNING: MPICH detected, which limits the total number of processes that can be used to %s as over-subscription results in a massive performance drop' % args.MaxCores))
+        print(tools.yellow(f'WARNING: MPICH detected, which limits the total number of processes that can be used to {args.MaxCores} as over-subscription results in a massive performance drop'))
 
     if args.run:
         print("args.run -> skip building")

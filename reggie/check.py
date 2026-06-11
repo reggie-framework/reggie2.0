@@ -10,17 +10,15 @@
 #
 # You should have received a copy of the GNU General Public License along with reggie2.0. If not, see <http://www.gnu.org/licenses/>.
 # ==================================================================================================================================
-from __future__ import print_function  # required for print() function with line break via "end=' '"
 import os
+import sys
 import re
 import shutil
 import subprocess
 import tempfile
 import threading
 import io
-import sys
 from functools import partial
-from typing import cast
 from multiprocessing.pool import ThreadPool
 
 from reggie import combinations
@@ -69,7 +67,7 @@ class Build(OutputDirectory, ExternalCommand):
                 binary_name = self.configuration["binary"]
             except Exception:
                 print(tools.red("No 'binary'-option with the name of the binary specified in 'builds.ini'"))
-                exit(1)
+                sys.exit(1)
             self.configuration.pop('binary', None)  # remove binary from config dict
             self.binary_dir = os.path.abspath(os.path.join(self.target_directory))
             self.binary_path = os.path.abspath(os.path.join(self.target_directory, binary_name))
@@ -78,15 +76,15 @@ class Build(OutputDirectory, ExternalCommand):
         self.cmake_cmd = ["cmake"]  # start composing cmake command
         self.cmake_cmd_color = ["cmake"]  # start composing cmake command with colors
         for key, value in self.configuration.items():  # add configuration to the cmake command
-            self.cmake_cmd.append("-D%s=%s" % (key, value))
-            self.cmake_cmd_color.append(tools.blue("-D") + "%s=%s" % (key, value))
+            self.cmake_cmd.append(f"-D{key}={value}")
+            self.cmake_cmd_color.append(tools.blue("-D") + f"{key}={value}")
 
         # add compiler options to each combination for code coverage
         coverage_env = os.getenv('CODE_COVERAGE')
         if coverage_env or coverage:
             coverage_flags = '"--coverage"'
             self.cmake_cmd.append('-DCMAKE_Fortran_FLAGS=' + coverage_flags)
-            self.cmake_cmd_color.append(tools.blue("-D") + "CMAKE_Fortran_FLAGS=" + '%s' % coverage_flags)
+            self.cmake_cmd_color.append(tools.blue("-D") + "CMAKE_Fortran_FLAGS=" + f'{coverage_flags}')
 
         self.cmake_cmd.append(self.basedir)  # add basedir to the cmake command
         self.cmake_cmd_color.append(self.basedir)  # add basedir to the cmake command
@@ -96,17 +94,17 @@ class Build(OutputDirectory, ExternalCommand):
         if self.binary_exists():  # if the binary exists, return
             print("skipping")
             return
-        else:  # for build carryon: when a binary is missing remove all examples (re-run all examples)
-            print("removing folder, ", end=' ')  # skip linebreak
-            shutil.rmtree(self.target_directory, ignore_errors=True)
-            os.makedirs(self.target_directory)
-            tools.create_folder(self.target_directory)
+        # for build carryon: when a binary is missing remove all examples (re-run all examples)
+        print("removing folder, ", end=' ')  # skip linebreak
+        shutil.rmtree(self.target_directory, ignore_errors=True)
+        os.makedirs(self.target_directory)
+        tools.create_folder(self.target_directory)
         print("building")
 
         # CMAKE: execute cmd in build directory
         # fmt: off
-        s_Color   = "C-making with [%s] ..." % (" ".join(self.cmake_cmd_color))
-        s_NoColor = "C-making with [%s] ..." % (" ".join(self.cmake_cmd))
+        s_Color   = "C-making with [{}] ...".format(" ".join(self.cmake_cmd_color))
+        s_NoColor = "C-making with [{}] ...".format(" ".join(self.cmake_cmd))
         # fmt: on
 
         if self.execute_cmd(self.cmake_cmd, self.target_directory, string_info=s_Color) != 0:  # use uncolored string for cmake
@@ -124,15 +122,14 @@ class Build(OutputDirectory, ExternalCommand):
             elif buildprocs > 0:
                 self.make_cmd.append("-j" + str(buildprocs))
         # execute cmd in build directory
-        s_NoColor = "Building with [%s] ..." % (" ".join(self.make_cmd))
+        s_NoColor = "Building with [{}] ...".format(" ".join(self.make_cmd))
 
         if self.execute_cmd(self.make_cmd, self.target_directory, string_info=s_NoColor) != 0:
             raise BuildFailedException(self)  # "MAKE failed"
         print('-' * 132)
 
     def __str__(self):
-        s = "BUILD in: " + self.target_directory
-        return s
+        return "BUILD in: " + self.target_directory
 
     def binary_exists(self):
         return os.path.exists(self.binary_path)
@@ -167,7 +164,7 @@ def StandaloneAutomaticMPIDetection(binary_path):
             checkCMAKELine = False
             checklibstaticLine = False
             with open(userblock) as f:
-                for line in f.readlines():  # iterate over all lines of the file
+                for line in f:  # iterate over all lines of the file
                     line = line.rstrip('\n')
 
                     # Only check lines within the "{[( CMAKE )]}" block
@@ -186,12 +183,12 @@ def StandaloneAutomaticMPIDetection(binary_path):
                                 if value.lower() == 'off':
                                     MPIifOFF = True
                                     userblockChecked = True
-                                    print(tools.yellow("Automatically determined that the executable was compiled with MPI=OFF\n  File: %s\n  Line: %s" % (userblock, line)))
+                                    print(tools.yellow(f"Automatically determined that the executable was compiled with MPI=OFF\n  File: {userblock}\n  Line: {line}"))
                                     break
-                                elif value.lower() == 'on':
+                                if value.lower() == 'on':
                                     MPIifOFF = False
                                     userblockChecked = True
-                                    print(tools.yellow("Automatically determined that the executable was compiled with MPI=ON\n  File: %s\n  Line: %s" % (userblock, line)))
+                                    print(tools.yellow(f"Automatically determined that the executable was compiled with MPI=ON\n  File: {userblock}\n  Line: {line}"))
                                     break
 
                     # Only check lines within the "{[( libpiclasstatic.dir/flags.make )]}" block
@@ -199,12 +196,12 @@ def StandaloneAutomaticMPIDetection(binary_path):
                         if "-DUSE_MPI=0" in line:
                             MPIifOFF = True
                             userblockChecked = True
-                            print(tools.yellow("Automatically determined that the executable was compiled with MPI=OFF (-DUSE_MPI=0)\n  File: %s\n  Line: %s" % (userblock, line)))
+                            print(tools.yellow(f"Automatically determined that the executable was compiled with MPI=OFF (-DUSE_MPI=0)\n  File: {userblock}\n  Line: {line}"))
                             break
-                        elif "-DUSE_MPI=1" in line:
+                        if "-DUSE_MPI=1" in line:
                             MPIifOFF = False
                             userblockChecked = True
-                            print(tools.yellow("Automatically determined that the executable was compiled with MPI=ON (-DUSE_MPI=1)\n  File: %s\n  Line: %s" % (userblock, line)))
+                            print(tools.yellow(f"Automatically determined that the executable was compiled with MPI=ON (-DUSE_MPI=1)\n  File: {userblock}\n  Line: {line}"))
                             break
 
                     # Check which block is being passed and extract the "CMAKE" block, other blocks will be ignores
@@ -230,19 +227,13 @@ def StandaloneAutomaticMPIDetection(binary_path):
                                 # Remove leading and trailing white spaces
                                 parameter = parameter.strip()
                                 # Get lower case string and set logical if, finally, the line {[( CMAKE )]} is found
-                                if parameter.lower() == 'cmake':
-                                    checkCMAKELine = True
-                                else:
-                                    checkCMAKELine = False
+                                checkCMAKELine = parameter.lower() == 'cmake'
                                 # Get lower case string and set logical if, finally, the line {[( libpiclasstatic.dir/flags.make )]} is found
                                 parameter = parameter.lower()
-                                if parameter.startswith('lib') and parameter.endswith('static.dir/flags.make'):
-                                    checklibstaticLine = True
-                                else:
-                                    checklibstaticLine = False
+                                checklibstaticLine = bool(parameter.startswith('lib') and parameter.endswith('static.dir/flags.make'))
 
     except Exception as e:
-        print(tools.red("Error checking userblock in StandaloneAutomaticMPIDetection() in check.py:\nError message [%s]\nThis program, however, will not be terminated!" % e))
+        print(tools.red(f"Error checking userblock in StandaloneAutomaticMPIDetection() in check.py:\nError message [{e}]\nThis program, however, will not be terminated!"))
 
     # 2nd Test
     # If the userblock test did not result in MPIifOFF=True, check the shared object dependencies of the executable and search for MPI related libs
@@ -265,35 +256,29 @@ def StandaloneAutomaticMPIDetection(binary_path):
                 err = err.decode("utf-8", 'ignore')
 
             # Check if the grep result is not empty
-            if std or 'not a dynamic executable' in cast(str, err):
+            if std or 'not a dynamic executable' in err:
                 MPIifOFF = False
-                if 'not a dynamic executable' in cast(str, err):
+                if 'not a dynamic executable' in err:
                     err = err.rstrip('\n')
                     err = err.lstrip()
-                    print(
-                        tools.yellow("Automatically determined that the executable was compiled with MPI libs (because file is not a dynamic executable)\n  File: %s\n  Test: %s -> returned '%s'" % (binary_path, a, err))
-                    )
+                    print(tools.yellow(f"Automatically determined that the executable was compiled with MPI libs (because file is not a dynamic executable)\n  File: {binary_path}\n  Test: {a} -> returned '{err}'"))
                 else:
-                    print(tools.yellow("Automatically determined that the executable was compiled with MPI libs\n  File: %s\n  Test: %s -> returned '%s'" % (binary_path, a, std)))
+                    print(tools.yellow(f"Automatically determined that the executable was compiled with MPI libs\n  File: {binary_path}\n  Test: {a} -> returned '{std}'"))
             else:
                 MPIifOFF = True
-                print(tools.yellow("Automatically determined that the executable was compiled without MPI libs\n  File: %s\n  Test: %s -> returned '%s'" % (binary_path, a, err)))
+                print(tools.yellow(f"Automatically determined that the executable was compiled without MPI libs\n  File: {binary_path}\n  Test: {a} -> returned '{err}'"))
 
         except Exception as e:  # this fails, if the supplied command line is corrupted
-            print(tools.red("Error using ldd in StandaloneAutomaticMPIDetection() in check.py:\nError message [%s]\nThis program, however, will not be terminated!" % e))
+            print(tools.red(f"Error using ldd in StandaloneAutomaticMPIDetection() in check.py:\nError message [{e}]\nThis program, however, will not be terminated!"))
 
     return MPIifOFF
 
 
 def getBuilds(basedir, source_directory, CMAKE_BUILD_TYPE, singledir, coverage):
-    combis, digits = combinations.getCombinations(os.path.join(source_directory, 'builds.ini'), OverrideOptionKey='CMAKE_BUILD_TYPE', OverrideOptionValue=CMAKE_BUILD_TYPE)
+    combis, _ = combinations.getCombinations(os.path.join(source_directory, 'builds.ini'), OverrideOptionKey='CMAKE_BUILD_TYPE', OverrideOptionValue=CMAKE_BUILD_TYPE)
 
     # create Builds
-    if singledir:
-        builds = [Build(basedir, source_directory, b, 0, coverage=coverage) for b in combis]
-    else:
-        builds = [Build(basedir, source_directory, b, i, coverage=coverage) for i, b in enumerate(combis, start=1)]
-    return builds
+    return [Build(basedir, source_directory, b, 0, coverage=coverage) for b in combis] if singledir else [Build(basedir, source_directory, b, i, coverage=coverage) for i, b in enumerate(combis, start=1)]
 
 
 class BuildFailedException(Exception):
@@ -301,7 +286,7 @@ class BuildFailedException(Exception):
         self.build = build
 
     def __str__(self):
-        return "build.compile failed in directory '%s'." % (self.build.target_directory)
+        return f"build.compile failed in directory '{self.build.target_directory}'."
 
 
 # ==================================================================================================
@@ -319,10 +304,7 @@ class Example(OutputDirectory):
 
 def getExamples(path, build, log):
     # checks directory with 'builds.ini'
-    if os.path.exists(os.path.join(build.source_directory, 'builds.ini')):
-        example_paths = [os.path.join(path, p) for p in sorted(os.listdir(path)) if os.path.isdir(os.path.join(path, p))]
-    else:
-        example_paths = [path]
+    example_paths = [os.path.join(path, p) for p in sorted(os.listdir(path)) if os.path.isdir(os.path.join(path, p))] if os.path.exists(os.path.join(build.source_directory, 'builds.ini')) else [path]
 
     examples = []  # list of examples for each build
     # iterate over all example paths (directories of the examples)
@@ -341,8 +323,7 @@ def getExamples(path, build, log):
                 log.info(tools.red("  skipping example"))
                 continue  # any of the excludes matches the build.configuration.
             # Skip this example for the build.configuration
-            else:
-                log.info(tools.yellow("  not skipping"))
+            log.info(tools.yellow("  not skipping"))
         examples.append(Example(p, build))
     return examples
 
@@ -355,22 +336,20 @@ class Command_Lines(OutputDirectory):
 
     def __str__(self):
         s = "command_line parameters:\n"
-        s += ",".join(["%s: %s" % (k, v) for k, v in self.parameters.items()])
+        s += ",".join([f"{k}: {v}" for k, v in self.parameters.items()])
         return tools.indent(s, 2)
 
 
 def getCommand_Lines(path, example, MPIbuilt, MaxCores):
     command_lines = []
-    i = 1
     # If single execution is to be performed, remove "MPI =! 1" from command line list
     if not MPIbuilt:
-        combis, digits = combinations.getCombinations(path, OverrideOptionKey='MPI', OverrideOptionValue='1')
+        combis, _ = combinations.getCombinations(path, OverrideOptionKey='MPI', OverrideOptionValue='1')
     else:
-        combis, digits = combinations.getCombinations(path, MaxCores=MaxCores)
+        combis, _ = combinations.getCombinations(path, MaxCores=MaxCores)
 
-    for r in combis:
-        command_lines.append(Command_Lines(r, example, i))
-        i += 1
+    for i, r in enumerate(combis):
+        command_lines.append(Command_Lines(r, example, i + 1))
 
     return command_lines
 
@@ -386,9 +365,9 @@ def getRestartFileList(example):
             options[option.name.lower()] = option.values[0]  # set name to lower case
         # check for empty lists and abort
         if option.values[0] == '':
-            raise Exception(tools.red("initialization of analyze.ini failed due to empty parameter [%s = %s], which is not allowed." % (option.name, option.values)))
+            raise Exception(tools.red(f"initialization of analyze.ini failed due to empty parameter [{option.name} = {option.values}], which is not allowed."))
 
-    return options.get('restart_file', None)
+    return options.get('restart_file')
 
 
 # ==================================================================================================
@@ -397,30 +376,24 @@ def SetMPIrun(build, args, MPIthreads):
     if MPIthreads:
         # Check if single execution is wanted (independent of the compiled executable)
         if args.noMPI:
-            print(tools.indent(tools.yellow("noMPI=%s, running case in single (without 'mpirun -np')" % (args.noMPI)), 2))
+            print(tools.indent(tools.yellow(f"noMPI={args.noMPI}, running case in single (without 'mpirun -np')"), 2))
             cmd = []
         elif args.noMPIautomatic:
-            print(tools.indent(tools.yellow("noMPIautomatic=%s, running case in single (without 'mpirun -np')" % (args.noMPIautomatic)), 2))
+            print(tools.indent(tools.yellow(f"noMPIautomatic={args.noMPIautomatic}, running case in single (without 'mpirun -np')"), 2))
             cmd = []
         else:
             # Check whether the compiled executable was created with MPI=ON
             if build.MPIbuilt:
                 if args.hlrs:
-                    if int(MPIthreads) < 24 :  # fmt: skip
-                        cmd = ["aprun", "-n", MPIthreads, "-N", MPIthreads]
-                    else :  # fmt: skip
-                        cmd = ["aprun", "-n", MPIthreads, "-N", "24"]
+                    cmd = ["aprun", "-n", MPIthreads, "-N", MPIthreads] if int(MPIthreads) < 24 else ["aprun", "-n", MPIthreads, "-N", "24"]
                 else:
                     if args.MPIexe == 'mpirun':
                         if args.MaxCores > 0 or args.detectedMPICH:
                             # MPICH core limit due to massive drop in performance when using over-subscription
                             if args.MaxCores > 0 and args.MaxCores < int(MPIthreads):
-                                if args.detectedMPICH:
-                                    tmpStr = "MPICH"
-                                else:
-                                    tmpStr = "MaxProcs"
+                                tmpStr = "MPICH" if args.detectedMPICH else "MaxProcs"
 
-                                print(tools.indent(tools.yellow("%s process limit activated: Setting MPIthreads=%s (originally was %s)" % (tmpStr, args.MaxCores, MPIthreads)), 3))
+                                print(tools.indent(tools.yellow(f"{tmpStr} process limit activated: Setting MPIthreads={args.MaxCores} (originally was {MPIthreads})"), 3))
                                 MPIthreads = str(args.MaxCores)
                             cmd = [args.MPIexe, "-np", MPIthreads]
                         else:
@@ -430,7 +403,7 @@ def SetMPIrun(build, args, MPIthreads):
                         # Something else
                         cmd = [args.MPIexe]
             else :  # fmt: skip
-                print(tools.indent(tools.yellow("Binary has been built with MPI=OFF with external setting MPIthreads=%s, running case in single (without 'mpirun -np')" % (MPIthreads)), 3))
+                print(tools.indent(tools.yellow(f"Binary has been built with MPI=OFF with external setting MPIthreads={MPIthreads}, running case in single (without 'mpirun -np')"), 3))
                 build.MPIrunDeactivated = True
                 cmd = []
     else:
@@ -444,19 +417,19 @@ def copyRestartFile(path, path_target):
     """Copy new restart file into example folder"""
     # Check whether the file for copying exists
     if not os.path.exists(path):
-        s = tools.red("copyRestartFile: Could not find file=[%s] for copying" % path)
+        s = tools.red(f"copyRestartFile: Could not find file=[{path}] for copying")
         print(s)
-        exit(1)
+        sys.exit(1)
 
     # Check whether the destination for copying the file exists
     if not os.path.exists(os.path.dirname(path_target)):
-        s = tools.red("copyRestartFile: Could not find location=[%s] for copying" % os.path.dirname(path_target))
+        s = tools.red(f"copyRestartFile: Could not find location=[{os.path.dirname(path_target)}] for copying")
         print(s)
-        exit(1)
+        sys.exit(1)
 
     # Copy file and create new reference
     shutil.copy(path, path_target)
-    s = tools.yellow("New restart file is copied from file=[%s] to file=[%s]" % (path, path_target))
+    s = tools.yellow(f"New restart file is copied from file=[{path}] to file=[{path_target}]")
     print(s)
 
 
@@ -468,7 +441,7 @@ class Externals(OutputDirectory):
 
     def __str__(self):
         s = "external parameters:\n"
-        s += ",".join(["%s: %s" % (k, v) for k, v in self.parameters.items()])
+        s += ",".join([f"{k}: {v}" for k, v in self.parameters.items()])
         return tools.indent(s, 2)
 
 
@@ -482,77 +455,72 @@ def getExternals(path, example, build):
     # Get combinations from externals.ini
     if not os.path.exists(path):
         return externals_pre, externals_post, externals_errors
-    combis, digits = combinations.getCombinations(path)
+    combis, _ = combinations.getCombinations(path)
 
     for iCombi, combi in enumerate(combis):
         # Check directory
         externaldirectory = combi.get('externaldirectory', None)
-        if not externaldirectory or not os.path.exists(os.path.join(example.source_directory, externaldirectory)):  # string is or empty and path does not exist
-            if not externaldirectory.endswith('.ini'):
-                s = tools.red('getExternals: "externaldirectory" is empty or the path [%s] does not exist' % os.path.join(example.source_directory, externaldirectory))
-                externals_errors.append(s)
-                print(s)
-                ExternalRun.total_errors += 1  # add error if externalrun fails
-                continue
+        if (not externaldirectory or not os.path.exists(os.path.join(example.source_directory, externaldirectory))) and not externaldirectory.endswith('.ini'):  # string is or empty and path does not exist
+            s = tools.red(f'getExternals: "externaldirectory" is empty or the path [{os.path.join(example.source_directory, externaldirectory)}] does not exist')
+            externals_errors.append(s)
+            print(s)
+            ExternalRun.total_errors += 1  # add error if externalrun fails
+            continue
 
         # Check binary
         binary_found = False  # default
         s = ''  # default
         externalbinary = combi.get('externalbinary', None)
         if not externalbinary:
-            s = tools.red('getExternals: External tools binary path "externalbinary" has not been supplied for external run number %s with "externaldirectory"=[%s].' % (iCombi, externaldirectory))
+            s = tools.red(f'getExternals: External tools binary path "externalbinary" has not been supplied for external run number {iCombi} with "externaldirectory"=[{externaldirectory}].')
             externals_errors.append(s)
             print(s)
             ExternalRun.total_errors += 1  # add error if externalrun fails
             continue
+        # Get binary name
+        binary = os.path.basename(externalbinary).lower()
+
+        # First: Check for the binary under ./bin directory (ignore the original full path)
+        # > Pre-compiled mode: Use only the binary name
+        # > Build mode: Use the complete binary path
+        binary_path = os.path.abspath(os.path.join(build.binary_dir, binary)) if isinstance(build, Standalone) else os.path.abspath(os.path.join(build.binary_dir, externalbinary))
+
+        # Second: If the binary path does not exist
+        # 1.) Check the original binary path, e.g., ./hopr/build/bin/hopr
+        # 2.) for specific binaries, e.g., hopr: check the environment variable: HOPR_PATH
+        if os.path.exists(binary_path):
+            binary_found = True
         else:
-            # Get binary name
-            binary = os.path.basename(externalbinary).lower()
-
-            # First: Check for the binary under ./bin directory (ignore the original full path)
-            if isinstance(build, Standalone):
-                # Pre-compiled mode: Use only the binary name
-                binary_path = os.path.abspath(os.path.join(build.binary_dir, binary))
-            else:
-                # Build mode: Use the complete binary path
-                binary_path = os.path.abspath(os.path.join(build.binary_dir, externalbinary))
-
-            # Second: If the binary path does not exist
-            # 1.) Check the original binary path, e.g., ./hopr/build/bin/hopr
-            # 2.) for specific binaries, e.g., hopr: check the environment variable: HOPR_PATH
+            # If the binary is not within the ./bin/ directory, check if the path points to a binary directly
+            binary_path = os.path.abspath(externalbinary)
             if os.path.exists(binary_path):
                 binary_found = True
-            else:
-                # If the binary is not within the ./bin/ directory, check if the path points to a binary directly
-                binary_path = os.path.abspath(externalbinary)
-                if os.path.exists(binary_path):
+            elif binary == 'hopr':
+                # Try and load hopr binary path form environment variables
+                hopr_path = os.getenv('HOPR_PATH')
+                if hopr_path and os.path.exists(hopr_path):
+                    binary_path = hopr_path
                     binary_found = True
-                elif binary == 'hopr':
-                    # Try and load hopr binary path form environment variables
-                    hopr_path = os.getenv('HOPR_PATH')
-                    if hopr_path and os.path.exists(hopr_path):
-                        binary_path = hopr_path
-                        binary_found = True
-                        combi['externalbinary'] = binary  # over-write user-defined path
-                    else:  # fmt: skip
-                        s = 'Tried loading hopr binary path from environment variable $HOPR_PATH=[%s] as the supplied path does not exist.\nAdd the binary path via "export HOPR_PATH=/opt/hopr/1.X/bin/hopr"\n' % hopr_path
-                elif binary == 'pyhope':
-                    # Try and load hopr binary path form environment variables
-                    pyhope_path = shutil.which("pyhope")
-                    if pyhope_path:
-                        binary_path = pyhope_path
-                        binary_found = True
-                        combi['externalbinary'] = pyhope_path  # over-write user-defined path
-                    else:  # fmt: skip
-                        s = 'Tried loading pyhope binary path from environment (pyhope_path = %s), but it was not found."\n' % pyhope_path
+                    combi['externalbinary'] = binary  # over-write user-defined path
+                else:  # fmt: skip
+                    s = f'Tried loading hopr binary path from environment variable $HOPR_PATH=[{hopr_path}] as the supplied path does not exist.\nAdd the binary path via "export HOPR_PATH=/opt/hopr/1.X/bin/hopr"\n'
+            elif binary == 'pyhope':
+                # Try and load hopr binary path form environment variables
+                pyhope_path = shutil.which("pyhope")
+                if pyhope_path:
+                    binary_path = pyhope_path
+                    binary_found = True
+                    combi['externalbinary'] = pyhope_path  # over-write user-defined path
+                else:  # fmt: skip
+                    s = f'Tried loading pyhope binary path from environment (pyhope_path = {pyhope_path}), but it was not found."\n'
 
-                # Display error if no binary is found
-                if not binary_found:
-                    s = tools.red('getExternals: %sThe supplied path [%s] via "externalbinary" does not exist.' % (s, binary_path))
-                    externals_errors.append(s)
-                    print(s)
-                    ExternalRun.total_errors += 1  # add error if externalrun fails
-                    continue
+            # Display error if no binary is found
+            if not binary_found:
+                s = tools.red(f'getExternals: {s}The supplied path [{binary_path}] via "externalbinary" does not exist.')
+                externals_errors.append(s)
+                print(s)
+                ExternalRun.total_errors += 1  # add error if externalrun fails
+                continue
 
         # If the binary has been found, assign pre/post flag
         if binary_found:
@@ -627,30 +595,29 @@ class ExternalRun(OutputDirectory, ExternalCommand):
         cmd_pre_execute = external.parameters.get('cmd_pre_execute')
         if cmd_pre_execute:
             cmd_pre = cmd_pre_execute.split()
-            s = "Running [%s] ..." % (" ".join(cmd_pre))
-            if args.meshesdir:
-                # if meshes are reused the 'cp' command needs to be adjusted to handle the symbolic links correctly
-                if 'cp' in cmd_pre:
-                    copy_index = cmd_pre.index('cp')
-                    if re.match(r'^-[a-zA-Z]+$', cmd_pre[copy_index + 1]) and 'L' not in cmd_pre[copy_index + 1]:
-                        # add -L to the options of the copy command
-                        cmd_pre[copy_index + 1] = cmd_pre[copy_index + 1] + 'L'
-                    else:
-                        # if not options are given, add -L to the copy command
-                        cmd_pre.insert(copy_index + 1, '-L')
+            s = "Running [{}] ...".format(" ".join(cmd_pre))
+            # if meshes are reused the 'cp' command needs to be adjusted to handle the symbolic links correctly
+            if args.meshesdir and 'cp' in cmd_pre:
+                copy_index = cmd_pre.index('cp')
+                if re.match(r'^-[a-zA-Z]+$', cmd_pre[copy_index + 1]) and 'L' not in cmd_pre[copy_index + 1]:
+                    # add -L to the options of the copy command
+                    cmd_pre[copy_index + 1] = cmd_pre[copy_index + 1] + 'L'
+                else:
+                    # if not options are given, add -L to the copy command
+                    cmd_pre.insert(copy_index + 1, '-L')
             self.execute_cmd(cmd_pre, external.directory, name='pre-exec', string_info=tools.indent(s, 3))  # run something
 
         if self.return_code != 0:
             self.successful = False
-            return
+            return None
 
         # check if the command 'cmd' can be executed
         cmdstr = " ".join(cmd)
         if self.return_code != 0:
             print(tools.indent("Cannot run the code: " + s, 2))
         else:
-            s = "Running [%s] ..." % cmdstr
-            head, tail = os.path.split(binary_path)
+            s = f"Running [{cmdstr}] ..."
+            _, tail = os.path.split(binary_path)
             # create meshes in separate directory to reuse same meshes with symbolic links, only if meshes_directory is not None and mesh_generator is external
             if meshes_directory is not None and mesh_generator in tail:
                 # copy hopr.ini file to meshes_directory
@@ -666,9 +633,9 @@ class ExternalRun(OutputDirectory, ExternalCommand):
                             # copy matching files to meshes_directory
                             shutil.copy2(os.path.join(os.path.dirname(self.parameter_path), file), meshes_directory)
                         else:
-                            print(tools.red("File [%s] does not exist in the current directory." % file))
+                            print(tools.red(f"File [{file}] does not exist in the current directory."))
                             self.successful = False
-                            return
+                            return None
                 # execute hopr in meshes_directory
                 self.execute_cmd(cmd, meshes_directory, name=tail, string_info=tools.indent(s, 3))  # run the code
             else:
@@ -681,14 +648,13 @@ class ExternalRun(OutputDirectory, ExternalCommand):
 
     def __str__(self):
         s = "RUN parameters:\n"
-        s += ",".join(["%s: %s" % (k, v) for k, v in self.parameters.items()])
+        s += ",".join([f"{k}: {v}" for k, v in self.parameters.items()])
         return tools.indent(s, 3)
 
 
 def getExternalRuns(parameterfilepath, external):
     """Get all combinations in 'parameter.ini'"""
     externalruns = []
-    i = 1
     # get combis : for each externalrun a combination of parameters is stored in a dict containing a [key]-[value] pairs
     #              combis contains multiple dicts 'OrderedDict'
     #              example for a key = 'N' and its value = '5' for polynomial degree of 5
@@ -696,22 +662,21 @@ def getExternalRuns(parameterfilepath, external):
     #              example in parameter.ini: N = 1,2,3 then digits would contain OrderedDict([('N', 2),...) for 0,1,2 = 3 different
     #              values for N)
     combis, digits = combinations.getCombinations(parameterfilepath, CheckForMultipleKeys=True)  #  parameterfilepath = path to parameter.ini (source)
-    for parameters in combis:
+    for i, parameters in enumerate(combis):
         # check each [key] for empty [value] (e.g. wrong definition in parameter.ini file)
         for key, value in parameters.items():
             if not value:
-                raise Exception(tools.red('parameter.ini contains an empty parameter definition for [%s]. Remove unnecessary commas!' % key))
+                raise Exception(tools.red(f'parameter.ini contains an empty parameter definition for [{key}]. Remove unnecessary commas!'))
 
         # construct run information with one set of parameters (parameter.ini will be created in target directory when the setup
         # is executed), one set of command line options (e.g. mpirun information) and the info of how many times a parameter is
         # varied under the variable 'digits'
-        run = ExternalRun(parameters, parameterfilepath, external, i, digits)
+        run = ExternalRun(parameters, parameterfilepath, external, i + 1, digits)
 
         # check if the run cannot be performed due to problems encountered when setting up the folder (e.g. not all files could
         # be create or copied to the target directory)
         if not run.skip:
             externalruns.append(run)  # add/append the run to the list of externalruns
-        i += 1
     return externalruns
 
 
@@ -745,7 +710,7 @@ class Run(OutputDirectory, ExternalCommand):
             src = os.path.abspath(os.path.join(self.source_directory, f))
             dst = os.path.abspath(os.path.join(self.target_directory, f))
             if os.path.isdir(src):  # check if file or directory needs to be copied
-                if not os.path.basename(src) == 'output_dir':  # do not copy the output_dir recursively into itself! (infinite loop)
+                if os.path.basename(src) != 'output_dir':  # do not copy the output_dir recursively into itself! (infinite loop)
                     shutil.copytree(src, dst)  # copy tree
             else:
                 # Check for symbolic links
@@ -808,16 +773,15 @@ class Run(OutputDirectory, ExternalCommand):
                     # Limit the number of mpithreads
                     if MPIthreads:
                         if int(MPIthreads) > nElems:
-                            s = tools.yellow("Automatically reducing number of MPI threads from %s to %s (number of elements in mesh)!" % (int(MPIthreads), nElems))
+                            s = tools.yellow(f"Automatically reducing number of MPI threads from {int(MPIthreads)} to {nElems} (number of elements in mesh)!")
                             print(tools.indent(s, 2))
                         MPIthreads = str(min(nElems, int(MPIthreads)))
             except Exception as e:
                 s = (
                     "Failed to extract the number of elements ('nElems') from the mesh file to automatically limit MPI threads."
-                    "\nError message: [%s]\nThe program will continue without limiting MPI threads for this execution." % e
+                    f"\nError message: [{e}]\nThe program will continue without limiting MPI threads for this execution."
                 )
                 print(tools.indent(tools.red(s), 2))
-                pass
 
         # check MPI built binary (only possible for reggie-compiled binaries)
         cmd = SetMPIrun(build, args, MPIthreads)
@@ -846,7 +810,7 @@ class Run(OutputDirectory, ExternalCommand):
                 if not found:
                     self.return_code = -1
                     self.result = tools.red("Restart file not found")
-                    s = tools.red("Restart file [%s] not found under [%s]" % (cmd_restart_file, cmd_restart_file_abspath))
+                    s = tools.red(f"Restart file [{cmd_restart_file}] not found under [{cmd_restart_file_abspath}]")
                 else:
                     cmd.append(cmd_restart_file)
 
@@ -855,13 +819,13 @@ class Run(OutputDirectory, ExternalCommand):
             s = tools.red(tools.indent("Cannot run the code: " + s, 2))
             print(s)
         else:
-            s = "Running [%s] ..." % (" ".join(cmd))
+            s = "Running [{}] ...".format(" ".join(cmd))
             self.execute_cmd(cmd, self.target_directory, string_info=tools.indent(s, 2))  # run the code
 
         # Copy restart file if required
         if cmd_restart_file and args.restartcopy:
             # 1. Get directory path and filename of the originally required restart file
-            head, tail = os.path.split(cmd_restart_file_abspath)
+            _, tail = os.path.split(cmd_restart_file_abspath)
 
             # 2. File path to be copied
             restart_file_path = os.path.abspath(os.path.join(self.target_directory, tail))
@@ -872,22 +836,21 @@ class Run(OutputDirectory, ExternalCommand):
             try:
                 file_name = os.path.join(self.target_directory, 'std.out')
                 with open(file_name) as f:
-                    for line in f.readlines():  # iterate over all lines of the file
+                    for line in f:  # iterate over all lines of the file
                         if 'WRITE STATE TO HDF5 FILE' in line:
                             s = line.rstrip()
                             FileName = re.search(r'\[(.*?)\]', s).group(1)  # search for string within parenthesis [...] and check if that is a file that exists
                             replace_restart_file_path = os.path.join(self.target_directory, FileName)
-                            print("replace_restart_file_path = %s" % (replace_restart_file_path))
-                            print("os.path.isfile(replace_restart_file_path) = %s" % (os.path.isfile(replace_restart_file_path)))
+                            print(f"replace_restart_file_path = {replace_restart_file_path}")
+                            print(f"os.path.isfile(replace_restart_file_path) = {os.path.isfile(replace_restart_file_path)}")
                             if replace_restart_file_path and os.path.isfile(replace_restart_file_path):
-                                print(tools.yellow("Found replacement for restart file copy: [%s] instead of [%s]" % (FileName, cmd_restart_file)))
+                                print(tools.yellow(f"Found replacement for restart file copy: [{FileName}] instead of [{cmd_restart_file}]"))
                                 restart_file_path = replace_restart_file_path
                                 cmd_restart_file = FileName
                             break
             except Exception as e:
-                print(tools.red("Tried getting the first State file name from std.out. Failed. Using original restart file for copying: [%s]" % cmd_restart_file))
-                print(tools.red("e = %s" % (e)))
-                pass
+                print(tools.red(f"Tried getting the first State file name from std.out. Failed. Using original restart file for copying: [{cmd_restart_file}]"))
+                print(tools.red(f"e = {e}"))
 
             # 3. Target file path
             restart_file_path_target = os.path.join(self.source_directory, tail)
@@ -897,8 +860,8 @@ class Run(OutputDirectory, ExternalCommand):
             if not found:
                 # Restart file not found (or not created)
                 self.return_code = -1
-                self.result = tools.red("Restart file [%s] was not created" % cmd_restart_file)
-                s = tools.red("Restart file (which should have been created) [%s] not found under [%s]" % (cmd_restart_file, restart_file_path))
+                self.result = tools.red(f"Restart file [{cmd_restart_file}] was not created")
+                s = tools.red(f"Restart file (which should have been created) [{cmd_restart_file}] not found under [{restart_file_path}]")
                 print(s)
             else:
                 # Copy new restart file
@@ -912,14 +875,13 @@ class Run(OutputDirectory, ExternalCommand):
 
     def __str__(self):
         s = "RUN parameters:\n"
-        s += ",".join(["%s: %s" % (k, v) for k, v in self.parameters.items()])
+        s += ",".join([f"{k}: {v}" for k, v in self.parameters.items()])
         return tools.indent(s, 3)
 
 
 def getRuns(path, command_line):
     """Get all combinations in 'parameter.ini'"""
     runs = []
-    i = 1
     # get combis : for each run a combination of parameters is stored in a dict containing a [key]-[value] pairs
     #              combis contains multiple dicts 'OrderedDict'
     #              example for a key = 'N' and its value = '5' for polynomial degree of 5
@@ -927,20 +889,19 @@ def getRuns(path, command_line):
     #              example in parameter.ini: N = 1,2,3 then digits would contain OrderedDict([('N', 2),...) for 0,1,2 = 3 different
     #              values for N)
     combis, digits = combinations.getCombinations(path, CheckForMultipleKeys=True)  # path to parameter.ini (source)
-    for parameters in combis:
+    for i, parameters in enumerate(combis):
         # check each [key] for empty [value] (e.g. wrong definition in parameter.ini file)
         for key, value in list(parameters.items()):
             if not value:
-                raise Exception(tools.red('parameter.ini contains an empty parameter definition for [%s]. Remove unnecessary commas!' % key))
+                raise Exception(tools.red(f'parameter.ini contains an empty parameter definition for [{key}]. Remove unnecessary commas!'))
         # construct run information with one set of parameters (parameter.ini will be created in target directory when the setup
         # is executed), one set of command line options (e.g. mpirun information) and the info of how many times a parameter is
         # varied under the variable 'digits'
-        run = Run(parameters, path, command_line, i, digits)
+        run = Run(parameters, path, command_line, i + 1, digits)
         # check if the run cannot be performed due to problems encountered when setting up the folder (e.g. not all files could
         # be create or copied to the target directory)
         if not run.skip:
             runs.append(run)  # add/append the run to the list of runs
-        i += 1
     return runs
 
 
@@ -997,11 +958,10 @@ class PerformCheck:
                 # we use the self.Matched_Generator_Name to get the corresponding file ending of our MeshGenerator from MeshGeneration
                 if file.endswith(self.MeshGeneration[self.Matched_Generator_Name]):
                     full_path = os.path.join(self.meshes_dir_path, file)
-                    if os.path.isfile(full_path):
-                        if full_path not in self.created_mesh_files.values():
-                            dict_identifier = dict_identifier + f'{self.externalrun_count}'
-                            # save directory where mesh is stored for current combination to set symbolic link in next run/command_line run
-                            self.created_mesh_files[dict_identifier] = os.path.join(self.meshes_dir_path, file)
+                    if os.path.isfile(full_path) and full_path not in self.created_mesh_files.values():
+                        dict_identifier = dict_identifier + f'{self.externalrun_count}'
+                        # save directory where mesh is stored for current combination to set symbolic link in next run/command_line run
+                        self.created_mesh_files[dict_identifier] = os.path.join(self.meshes_dir_path, file)
 
         # neither the first command_line or run so the mesh should have been created already, so we create the identifier to check our dict
         dict_identifier = f'{self.external_count}' + f'{self.externalparameterfile_count}' + f'{self.externalrun_count}'
@@ -1010,11 +970,7 @@ class PerformCheck:
         try:
             mesh_name_current_externalrun = os.path.basename(self.created_mesh_files[dict_identifier])
         except Exception as e:
-            print(tools.indent(tools.red(
-                f"Mesh not found in {self.meshes_dir_path}\n"
-                f"Exception type: {type(e).__name__}\n"
-                f"Exception value: {e!r}\n"
-            ), 2))
+            print(tools.indent(tools.red(f"Mesh not found in {self.meshes_dir_path}\nException type: {type(e).__name__}\nException value: {e!r}\n"), 2))
             sys.exit(1)
 
         # check if mesh of current run matches mesh of current external run to set symbolic link
@@ -1026,7 +982,7 @@ class PerformCheck:
                 cmd_pre_execute = external.parameters.get('cmd_pre_execute')
                 if cmd_pre_execute:
                     cmd_pre = cmd_pre_execute.split()
-                    s = "Running [%s] ..." % (" ".join(cmd_pre))
+                    s = "Running [{}] ...".format(" ".join(cmd_pre))
                     externalrun.execute_cmd(cmd_pre, external.directory, name='pre-exec', string_info=tools.indent(s, 3))  # run something
             try:
                 # Create symbolic link
@@ -1063,8 +1019,8 @@ class PerformCheck:
                 if '2' in args.coverage:
                     self.coverage_output_cobertura = True
             else:
-                print(tools.red("Invalid value for --coverage: '%s'. Use any combination of 1, 2 or 0." % args.coverage))
-                exit(1)
+                print(tools.red(f"Invalid value for --coverage: '{args.coverage}'. Use any combination of 1, 2 or 0."))
+                sys.exit(1)
             args.coverage = True
 
         # create directory to store coverage data (one file per build), if executed locally the coverage directory is created in the current directory, but
@@ -1094,7 +1050,7 @@ class PerformCheck:
         s = tools.green("Post-processing: Started gcovr")
         print(tools.indent(s, 1))
         if args.exe:
-            print(tools.indent(tools.yellow("Running gcovr for standalone executable [%s]" % build.binary_path), 2))
+            print(tools.indent(tools.yellow(f"Running gcovr for standalone executable [{build.binary_path}]"), 2))
             try:
                 # expect directory structure for a cmake project like
                 # program
@@ -1108,10 +1064,10 @@ class PerformCheck:
                 # sanity check: find .gcno files in coverage_files_dir or any subdir, since exe must be compiled with coverage
                 gcno_files = [os.path.join(root, file) for root, _, files in os.walk(coverage_files_dir) for file in files if file.endswith('.gcno')]
                 if not gcno_files:
-                    raise Exception("No .gcno files found in coverage_files_dir [%s] or any subdirectories. Please check if the executable is compiled with coverage enabled" % coverage_files_dir)
+                    raise Exception(f"No .gcno files found in coverage_files_dir [{coverage_files_dir}] or any subdirectories. Please check if the executable is compiled with coverage enabled")
             except Exception as e:
-                print("%s" % (tools.red("Error determining source directory of standalone executable: %s" % e)))
-                exit(1)
+                print("{}".format(tools.red(f"Error determining source directory of standalone executable: {e}")))
+                sys.exit(1)
             # source_files_dir is the directory where the source files are located, it is expected to be the parent directory or at least a subdirectory of the parentdirectory
             self.source_files_dir = os.path.dirname(coverage_files_dir)
         else:
@@ -1120,23 +1076,23 @@ class PerformCheck:
 
         coverage_files_dir = os.path.abspath(coverage_files_dir)
         if not os.path.exists(coverage_files_dir):
-            s = tools.red("Coverage data object directory [%s] does not exist" % coverage_files_dir)
+            s = tools.red(f"Coverage data object directory [{coverage_files_dir}] does not exist")
             print(s)
-            exit(1)
+            sys.exit(1)
 
         # try to append /src to the path to exclude other directories, e.g. UnitTests
         src_path = os.path.abspath(os.path.join(self.source_files_dir, 'src'))
         if os.path.exists(src_path):
             self.source_files_dir = src_path
-            print(tools.indent(tools.yellow("Using source directory [%s] for gcovr" % self.source_files_dir), 2))
+            print(tools.indent(tools.yellow(f"Using source directory [{self.source_files_dir}] for gcovr"), 2))
 
         self.source_files_dir = os.path.abspath(self.source_files_dir)
         if not os.path.exists(self.source_files_dir):
-            s = tools.red("Source files directory [%s] does not exist" % self.source_files_dir)
+            s = tools.red(f"Source files directory [{self.source_files_dir}] does not exist")
             print(s)
-            exit(1)
+            sys.exit(1)
 
-        s = tools.indent(tools.green('Combining coverage reports for build: %s' % build.target_directory), 2)
+        s = tools.indent(tools.green(f'Combining coverage reports for build: {build.target_directory}'), 2)
         print(s)
         cmd_gcovr = ["gcovr", "--root", f"{self.source_files_dir}", f"{coverage_files_dir}"]
         if args.debug > 0:
@@ -1146,12 +1102,9 @@ class PerformCheck:
             cmd_gcovr.extend(args.gcovr_extra.split(' '))
 
         # get name of current build source dir
-        if self.coverage_env:
-            # get cwd for naming convention due to gitlab setup
-            report_name = f"combined_report_{os.path.basename(os.getcwd())}.json"
-        else:
-            # get build_dir name otherwise
-            report_name = f"combined_report_{os.path.basename(str(coverage_files_dir))}.json"
+        # > get cwd for naming convention due to gitlab setup
+        # > get build_dir name otherwise
+        report_name = f"combined_report_{os.path.basename(os.getcwd())}.json" if self.coverage_env else f"combined_report_{os.path.basename(str(coverage_files_dir))}.json"
 
         # check if file already exists from other reggie call before the current call, e.g. two regression tests use the same build, which would lead to the same report_name here
         if report_name in os.listdir(self.coverage_dir):
@@ -1167,7 +1120,7 @@ class PerformCheck:
 
             print(tools.indent(f'{report_name} already exists in {self.coverage_dir}! Creating temporary report {os.path.basename(temp_new_path)} and merging coverage data.', 2))
             cmd_gcovr.extend(["--json", os.path.basename(temp_new_path)])
-            s = tools.indent("Generating new coverage data [%s] ..." % (" ".join(cmd_gcovr)), 2)
+            s = tools.indent("Generating new coverage data [{}] ...".format(" ".join(cmd_gcovr)), 2)
             return_code = ExternalCommand().execute_cmd(cmd_gcovr, self.coverage_dir, string_info=s)
             if return_code != 0:
                 # Clean up temp file on failure
@@ -1189,7 +1142,7 @@ class PerformCheck:
                         ]
             # fmt: on
 
-            s = tools.indent("Merging coverage reports [%s] ..." % (" ".join(cmd_combine)), 2)
+            s = tools.indent("Merging coverage reports [{}] ...".format(" ".join(cmd_combine)), 2)
             return_code = ExternalCommand().execute_cmd(cmd_combine, self.coverage_dir, string_info=s)
             if return_code != 0:
                 # Clean up temp files on failure
@@ -1205,7 +1158,7 @@ class PerformCheck:
         else:
             # No existing report, create new one directly
             cmd_gcovr.extend(["--json", report_name])
-            s = tools.indent("Running [%s] ..." % (" ".join(cmd_gcovr)), 2)
+            s = tools.indent("Running [{}] ...".format(" ".join(cmd_gcovr)), 2)
             ExternalCommand().execute_cmd(cmd_gcovr, self.coverage_dir, string_info=s)
 
         s = tools.green("Post-processing: Finished gcovr")
@@ -1240,19 +1193,19 @@ class PerformCheck:
             tools.create_folder(html_path)
             cmd_combine_html = cmd_combine.copy()
             cmd_combine_html.extend(["--html-nested", "combined_report.html"])
-            s = tools.indent("Running [%s] ..." % (" ".join(cmd_combine_html)), 2)
+            s = tools.indent("Running [{}] ...".format(" ".join(cmd_combine_html)), 2)
             ExternalCommand().execute_cmd(cmd_combine_html, html_path, string_info=s)
         if self.coverage_output_cobertura:
             xml_path = os.path.abspath(os.path.join(combined_cov_path, "xml"))
             tools.create_folder(xml_path)
             cmd_combine_cobertura = cmd_combine.copy()
             cmd_combine_cobertura.extend(["--cobertura", "combined_report.xml"])
-            s = tools.indent("Running [%s] ..." % (" ".join(cmd_combine_cobertura)), 2)
+            s = tools.indent("Running [{}] ...".format(" ".join(cmd_combine_cobertura)), 2)
             ExternalCommand().execute_cmd(cmd_combine_cobertura, xml_path, string_info=s)
 
         cmd_combine.extend(["--json", "combined_report.json"])
         # merge functions for builds with different compiler flags (function name stays the same but line changes due to ifdef)
-        s = tools.indent("Running [%s] ..." % (" ".join(cmd_combine)), 2)
+        s = tools.indent("Running [{}] ...".format(" ".join(cmd_combine)), 2)
         ExternalCommand().execute_cmd(cmd_combine, combined_cov_path, string_info=s)
 
     #######################################################################
@@ -1317,7 +1270,7 @@ class PerformCheck:
                     s2 = build.configuration.items()
                     s = s1 + '\n' + str(s2)
                     print(s)
-                    exit(1)
+                    sys.exit(1)
 
                 # 1.2    compile the build if args.run is false and the binary is non-existent
                 build.compile(args.buildprocs)
@@ -1340,10 +1293,9 @@ class PerformCheck:
                             # Additionally check for variable MPI_built_flag=PICLAS_MPI (or FLEXI_MPI, depending on the executable name)
                             MPI_built_flag = os.path.basename(build.binary_path).upper() + "_MPI"
                             MPI_built_value = build.configuration.get(MPI_built_flag, 'OFF')
-                            if MPI_built_value == 'ON':  # PICLAS_MPI=ON specified
-                                MPIbuilt = True
-                            else:  # PICLAS_MPI=OFF or flag not specified (i.e. assuming LIBS_USE_MPI=OFF)
-                                MPIbuilt = False
+                            # > PICLAS_MPI=ON specified
+                            # > PICLAS_MPI=OFF or flag not specified (i.e. assuming LIBS_USE_MPI=OFF)
+                            MPIbuilt = MPI_built_value == 'ON'
                 build.MPIbuilt = MPIbuilt
 
                 # 2.   loop over all example directories
@@ -1375,23 +1327,20 @@ class PerformCheck:
                         if self.database_path is not None:
                             self.database_path = os.path.abspath(os.path.join(example.source_directory, self.database_path))
                             if not os.path.exists(self.database_path):
-                                s = tools.red("command_line.ini: cannot find file=[%s] " % (self.database_path))
+                                s = tools.red(f'command_line.ini: cannot find file=[{self.database_path}]')
                                 print(s)
-                                exit(1)
+                                sys.exit(1)
                         # CVAE scattering linking
                         self.cvae_scattering_cvae = self.command_line.parameters.get('cvae_scattering', None)
                         if self.cvae_scattering_cvae is not None:
                             self.cvae_scattering_cvae = os.path.abspath(os.path.join(example.source_directory, self.cvae_scattering_cvae))
                             if not os.path.exists(self.cvae_scattering_cvae):
-                                s = tools.red("command_line.ini: cannot find file=[%s] " % (self.cvae_scattering_cvae))
+                                s = tools.red(f'command_line.ini: cannot find file=[{self.cvae_scattering_cvae}]')
                                 print(s)
-                                exit(1)
+                                sys.exit(1)
 
                         # Get the index of the restart file to append to the analyze
-                        if example.restart_file_list is not None:
-                            iRestartFile = example.restart_file_list.index(self.command_line.parameters.get('restart_file', None))
-                        else:
-                            iRestartFile = None
+                        iRestartFile = example.restart_file_list.index(self.command_line.parameters.get('restart_file', None)) if example.restart_file_list is not None else None
 
                         # 3.1    read the executable parameter file 'parameter.ini' (e.g. flexi.ini with which
                         #        flexi will be started), N=, mesh=, etc.
@@ -1424,7 +1373,7 @@ class PerformCheck:
                         runs_successful = [run for run in self.command_line.runs if run.successful]
                         if runs_successful:  # do analysis only if runs_successful is not empty
                             for analyze in example.analyzes:
-                                if isinstance(analyze, Clean_up_files) or isinstance(analyze, Analyze_compare_across_commands):
+                                if isinstance(analyze, (Clean_up_files, Analyze_compare_across_commands)):
                                     # skip because either already called in the "run" loop under 4.2 or called later under cross-command comparisons in 7.
                                     continue
                                 # Set the restart file index in case of one diff per restart file (from command line)
@@ -1437,7 +1386,7 @@ class PerformCheck:
                                 if args.stop and Analyze.total_errors > 0:
                                     s = tools.red('Stop on first error (-p, --stop) is activated! Analysis failed')
                                     print(s)
-                                    exit(1)
+                                    sys.exit(1)
                         else:  # don't delete build folder after all examples/runs
                             remove_build_when_successful = False
 
@@ -1447,19 +1396,19 @@ class PerformCheck:
                                 run.rename_failed()
 
                         # Don't remove when run fails
-                        if not all([run.analyze_successful for run in runs_successful]):  # don't delete build folder after all examples/runs
+                        if not all(run.analyze_successful for run in runs_successful):  # don't delete build folder after all examples/runs
                             remove_build_when_successful = False
 
                         # Don't remove when (pre) external fails
                         for run in runs_successful:
                             for external in run.externals_pre:
-                                if not all([externalrun.successful for externalrun in external.runs]):  # don't delete build folder after all examples/runs
+                                if not all(externalrun.successful for externalrun in external.runs):  # don't delete build folder after all examples/runs
                                     remove_build_when_successful = False
 
                         # Don't remove when (post) external fails
                         for run in runs_successful:
                             for external in run.externals_post:
-                                if not all([externalrun.successful for externalrun in external.runs]):  # don't delete build folder after all examples/runs
+                                if not all(externalrun.successful for externalrun in external.runs):  # don't delete build folder after all examples/runs
                                     remove_build_when_successful = False
 
                     # 7.    perform analyze tests comparing corresponding runs from different commands
@@ -1475,7 +1424,7 @@ class PerformCheck:
                                 if args.stop and Analyze.total_errors > 0:
                                     s = tools.red('Stop on first error (-p, --stop) is activated! Analysis failed (cross-command comparisons)')
                                     print(s)
-                                    exit(1)
+                                    sys.exit(1)
 
                 # create coverage report for current build
                 if args.coverage:
@@ -1509,7 +1458,7 @@ class PerformCheck:
 
             print("run 'reggie' with the command line option '-c/--carryon' to skip successful builds.")
             tools.finalize(start, 1, Run.total_errors, Analyze.total_errors, Analyze.total_infos)
-            exit(1)
+            sys.exit(1)
 
     def perform_runs_in_parallel(self, build, example, args, num_processes):
         original_meshesdir = args.meshesdir
@@ -1576,18 +1525,18 @@ class PerformCheck:
             # collect different runtimes (from externals and main run)
             run.externals_time = 0
             self.RunCount = RunCount
-            print(tools.indent('Run %s of %s' % (RunCount, NbrOfRuns), 1))
+            print(tools.indent(f'Run {RunCount} of {NbrOfRuns}', 1))
             # log.info(str(run))
             # Database linking
             if self.database_path is not None and os.path.exists(run.target_directory):
-                head, tail = os.path.split(self.database_path)
+                _, tail = os.path.split(self.database_path)
                 os.symlink(self.database_path, os.path.join(run.target_directory, tail))
-                print(tools.indent(tools.green('Preprocessing: Linked database [%s] to [%s] ... ' % (self.database_path, run.target_directory)), 2))
+                print(tools.indent(tools.green(f'Preprocessing: Linked database [{self.database_path}] to [{run.target_directory}] ... '), 2))
             # CVAE scattering linking
             if self.cvae_scattering_cvae is not None and os.path.exists(run.target_directory):
-                head, tail = os.path.split(self.cvae_scattering_cvae)
+                _, tail = os.path.split(self.cvae_scattering_cvae)
                 os.symlink(self.cvae_scattering_cvae, os.path.join(run.target_directory, tail))
-                print(tools.indent(tools.green('Preprocessing: Linked CVAE scattering cvae file [%s] to [%s] ... ' % (self.cvae_scattering_cvae, run.target_directory)), 2))
+                print(tools.indent(tools.green(f'Preprocessing: Linked CVAE scattering cvae file [{self.cvae_scattering_cvae}] to [{run.target_directory}] ... '), 2))
 
             # 4.1 read the external options in 'externals.ini' within each example directory (e.g. eos, hopr, posti)
             #     distinguish between pre- and post processing
@@ -1603,13 +1552,13 @@ class PerformCheck:
                 else:
                     PreprocessingActive = True
                     externalbinaries = [external.parameters.get("externalbinary") for external in run.externals_pre]
-                    print(tools.indent(tools.green('Preprocessing: Started  %s pre-externals' % externalbinaries), 3))
+                    print(tools.indent(tools.green(f'Preprocessing: Started  {externalbinaries} pre-externals'), 3))
 
             if PreprocessingActive:
                 for self.external_count, external in enumerate(run.externals_pre):
                     # use |= (bitwise or assignment) to check save if at least one external has failed
                     external_failed |= self.perform_external(external, run, build, args, stage='pre')
-                print(tools.indent(tools.green('Preprocessing: Externals %s finished!' % externalbinaries), 3))
+                print(tools.indent(tools.green(f'Preprocessing: Externals {externalbinaries} finished!'), 3))
                 if not run_in_parallel:
                     # mesh creation only possible for single core runs, so keep track if all meshes are created or still needs to be done
                     # this is only checked after all externals have been executed for the current run, since its possible to create more than one mesh in a single run (e.g. convergence tests)
@@ -1623,7 +1572,7 @@ class PerformCheck:
                 if args.stop:
                     s = tools.red('Stop on first error (-p, --stop) is activated! Execution of run failed')
                     print(s)
-                    exit(1)
+                    sys.exit(1)
 
             # (post) externals: loop over all externals available in external.ini
             if run.externals_post is None:
@@ -1634,12 +1583,12 @@ class PerformCheck:
                 else:
                     PostprocessingActive = True
                     externalbinaries = [external.parameters.get("externalbinary") for external in run.externals_post]
-                    print(tools.indent(tools.green('Postprocessing: Started  %s post-externals' % externalbinaries), 3))
+                    print(tools.indent(tools.green(f'Postprocessing: Started  {externalbinaries} post-externals'), 3))
 
             if PostprocessingActive:
                 for self.external_count, external in enumerate(run.externals_post):
                     self.perform_external(external, run, build, args, stage='post')
-                print(tools.indent(tools.green('Postprocessing: Externals %s finished!' % externalbinaries), 3))
+                print(tools.indent(tools.green(f'Postprocessing: Externals {externalbinaries} finished!'), 3))
 
             # 4.3 Remove unwanted files: run analysis directly after each run (as opposed to the normal analysis which is used for analyzing the created output)
             for analyze in example.analyzes:
@@ -1685,25 +1634,22 @@ class PerformCheck:
         # check if meshes should be reused with symbolic links for each command line of example (only for pre stage)
         if stage == 'pre' and args.meshesdir:
             # check if externalbinary is set in self.MeshGeneration and should be executed only once
-            self.Matched_Generator_Name = next((Generator_Name for Generator_Name in self.MeshGeneration.keys() if Generator_Name in externalbinary), None)
-            if self.Matched_Generator_Name:
-                externalcmd = self.mesh_external(run, external, externalrun, build, args)
-            else:
-                externalcmd = externalrun.execute(build, external, args)
+            self.Matched_Generator_Name = next((Generator_Name for Generator_Name in self.MeshGeneration if Generator_Name in externalbinary), None)
+            externalcmd = self.mesh_external(run, external, externalrun, build, args) if self.Matched_Generator_Name else externalrun.execute(build, external, args)
         else:
             externalcmd = externalrun.execute(build, external, args)
 
         external_run_failed = False
         if not externalrun.successful:
             external_run_failed = True
-            s = tools.red('Execution (%s) external failed: %s' % (stage, externalcmd))
+            s = tools.red(f'Execution ({stage}) external failed: {externalcmd}')
             run.externals_errors.append(s)
             ExternalRun.total_errors += 1  # add error if externalrun fails
             # Check if immediate stop is activated on failure
             if args.stop:
-                s = tools.red('Stop on first error (-p, --stop) is activated! Execution (%s) external failed' % stage)
+                s = tools.red(f'Stop on first error (-p, --stop) is activated! Execution ({stage}) external failed')
                 print(s)
-                exit(1)
+                sys.exit(1)
 
         # add external runtime
         run.externals_time += externalrun.walltime

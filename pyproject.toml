@@ -1,52 +1,129 @@
+# pyproject.toml compatible with Poetry (version 2.0+)
+[project]
+name = "reggie"
+version = "2.0.0"
+description = ""
+license = "GPL-3.0-only"
+readme = "README.md"
+authors = [
+    {name = "Stephen Copplestone", email = "copplestone@boltzplatz.eu"},
+]
+dependencies = [
+    "h5py>=3.13.0",
+    "matplotlib>=3.1.2",
+    "vtk>=9.4.0",
+    "pre-commit>=4.1.0",
+    "scipy>=1.15.3",
+    "gcovr>=8.4",
+    "coverage>=7.10.7",
+    "ty>=0.0.38",
+    "typing-extensions>=4.0.0"
+    ]
+keywords = [
+    "regression checks",
+    "regression testing",
+    "regression testing framework"
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Programming Language :: Python :: 3",
+]
+
+[project.urls]
+repository = "https://github.com/piclas-framework/reggie2.0"
+
+[project.scripts]
+reggie = "reggie.reggie:main"
+repas = "reggie.repas.repas:main"
+
+# Build system
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.poetry]
-name = "reggie"
-version = "2.0.0"
-authors = [
-	"Stephen Copplestone"
-]
-description = ""
-license = "GPL-3.0"
-readme = "README.md"
-repository = "https://github.com/piclas-framework/reggie2.0"
-keywords = ["regression checks", "regression testing", "regression testing framework"]
-classifiers = [
-    "Development Status :: 5 - Production/Stable",
-    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
-    "Programming Language :: Python :: 3",
-    "Operating System :: OS Independent",
-]
-
-[tool.poetry.dependencies]
-h5py = ">=3.13.0"
-matplotlib = ">=3.1.2"
-vtk = ">=9.4.0"
-pre-commit = ">=4.1.0"
-scipy = ">=1.15.3"
-gcovr = ">=8.4"
-coverage = ">=7.10.7"
-typing-extensions = ">=4.0.0"
-
-[tool.poetry.scripts]
-reggie = "reggie.reggie:main"
-repas = "reggie.repas.repas:main"
+# Legacy setuptools support
+[tool.setuptools.packages.find]
+include = ["reggie*"]
 
 [tool.ruff]
 line-length = 220
 indent-width = 4
 force-exclude = true
-exclude = ["reggie/__init__.py"]
+exclude = [
+    "reggie/__init__.py",
+    # Exclude a variety of commonly ignored directories.
+    ".git",
+    ".pyenv",
+    ".venv",
+    ".vscode",
+    "dist",
+    "node_modules",
+    "site-packages",
+    "venv"
+    ]
+# Required Ruff version
 required-version = ">=0.7.1"
 show-fixes = true
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "B", "A", "ARG", "TD", "PERF", "RUF100"
-         ]
-ignore = ["E402","TD002"]
+extend-select = [
+  # "ANN",      # flake8-annotations
+  "B",        # flake8-bugbear
+  "C4",       # flake8-comprehensions
+  "FA",       # flake8-future-annotations
+  "RET",      # flake8-return
+  "SIM",      # flake8-simplify
+  "SLOT",     # flake8-slots
+  "TID",      # flake8-tidy-imports
+  "PERF",     # Perflint
+  "FURB",     # refurb
+  "I",        # isort
+  "NPY",      # NumPy-specific rules
+  # "RUF",      # Ruff-specific rules
+  ]
+ignore = [
+  "EXE001",   # shebang-not-executable             - we use shebang as file format identifier
+  "I001",     # unsorted-imports                   - we use logical sorting instead of alphabetical
+  "RET501",   # unnecessary-return-none            - we want to be explicit about our return values
+  "RUF001",   # ambiguous-unicode-character-string - we want to use all characters
+  "RUF100",   # unused-noqa                        - we want to have multiple linters, thus sometimes more exceptions are necessary
+  "UP009",    # utf8-encoding-declaration          - we want to be explicit about our encoding
+  "UP007",    # non-pep604-annotation-union        - we want explicit typing.Union annotations
+  "UP045",    # non-pep604-annotation-optional     - we want explicit typing.Optional annotations
+  "PLR0402",  # manual-from-import                 - we want every import specify the module name
+  # INFO: False positives
+  "RET503",   # implicit-return                    - ruff does not detect hopout.error[NoReturn]
+  # OPTIMIZE: These should be fixed eventually
+  "ANN002",   # missing-type-args                  - determine non-trivial types
+  "BLE001",   # blind-except                       - narrow errors and exceptions
+  "S110",     # try-except-pass                    - implement feature.logger branch
+  "S112",     # try-except-continue                - implement feature.logger branch
+  "E402",     #
+  "TD002",    #
+  "TRY002",   # raise-vanilla-class
+ ]
 
 [tool.ruff.format]
 indent-style = "space"
 quote-style = "preserve"
+
+[tool.ty.rules]
+# Type checker
+invalid-argument-type      = 'ignore'
+invalid-assignment         = 'ignore'
+possibly-missing-attribute = 'ignore'
+unresolved-attribute       = 'ignore'
+unsupported-operator       = 'ignore'
+unused-ignore-comment      = 'ignore'
+# unused-type-ignore-comment = 'ignore'
+
+# Dead code
+[tool.vulture]
+paths = [
+    "reggie",
+]
+# OPTIMIZE: might reduce percentage
+min_confidence = 70
+sort_by_size = true

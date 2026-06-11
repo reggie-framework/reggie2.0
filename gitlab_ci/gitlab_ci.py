@@ -10,28 +10,27 @@
 #
 # You should have received a copy of the GNU General Public License along with reggie2.0. If not, see <http://www.gnu.org/licenses/>.
 # ==================================================================================================================================
-from __future__ import print_function  # required for print() function with line break via "end=' '"
 from timeit import default_timer as timer
 import os
+import sys
 import re
 import logging
 import argparse
 import shutil
-import tools
-import gitlab_ci_tools
+import tools  # ty:ignore[unresolved-import]
+import gitlab_ci_tools  # ty:ignore[unresolved-import]
 
 # import reggie source code
 # use reggie2.0 functions by adding the path
-import settings
+import settings  # ty:ignore[unresolved-import]
 
 settings.init()  # Call only once
-import sys
 
 sys.path.append(settings.absolute_reggie_path)
 reggie_exe_path = os.path.join(settings.absolute_reggie_path, 'reggie.py')
 if not os.path.exists(reggie_exe_path):
-    print("Reggie main file not found in reggie repository under: '%s'" % reggie_exe_path)
-    exit(1)
+    print(f"Reggie main file not found in reggie repository under: '{reggie_exe_path}'")
+    sys.exit(1)
 
 
 def CheckBinaryCall(c):
@@ -48,8 +47,8 @@ def CheckBinaryCall(c):
             case_dir = os.path.join(case_dir, 'checks')
             case_dir = os.path.join(case_dir, b)
             if not os.path.exists(case_dir):  # Sanity check if folder exists: use only the part of the string up to the first (whitespace (" ")
-                print(tools.red("case directory not found under: '%s'" % case_dir))
-                exit(1)
+                print(tools.red(f"case directory not found under: '{case_dir}'"))
+                sys.exit(1)
             c = c[: c.find(remove_string)].strip()  # remove everything after remove_string
         else:
             print("  " + c, end=' ')  # skip linebreak
@@ -60,7 +59,7 @@ def CheckBinaryCall(c):
 
 def DisplayInitMessage(Bool, Message):
     if Bool:
-        print("\n%s\n" % Message)
+        print(f"\n{Message}\n")
         Bool = False
 
     return Bool
@@ -102,16 +101,16 @@ log = logging.getLogger('logger')
 
 # check if file exists
 if os.path.isdir(args.gitlab_ci):
-    print(tools.yellow("Supplied path is [%s]. Searching for '.gitlab-ci.yml' there." % args.gitlab_ci))
+    print(tools.yellow(f"Supplied path is [{args.gitlab_ci}]. Searching for '.gitlab-ci.yml' there."))
     args.gitlab_ci = os.path.join(args.gitlab_ci, '.gitlab-ci.yml')
 if not os.path.exists(args.gitlab_ci):
-    print(tools.red("gitlab-ci.yml file not found under: '%s'" % args.gitlab_ci))
-    exit(1)
+    print(tools.red(f"gitlab-ci.yml file not found under: '{args.gitlab_ci}'"))
+    sys.exit(1)
 
 # display all command line arguments
 print("Running with the following command line options")
 for arg in args.__dict__:
-    print("%s = [ %s ]" % (arg.ljust(15), getattr(args, arg)))
+    print(f"{arg.ljust(15)} = [ {getattr(args, arg)} ]")
 print('=' * 132)
 
 
@@ -126,8 +125,8 @@ print('=' * 132)
 
 reggie_path = os.path.join(reggiedir, 'reggie.py')
 if not os.path.exists(reggie_path):  # check if file exists
-    print(tools.red("reggie not found in reggie directory: '%s'" % reggie_path))
-    exit(1)
+    print(tools.red(f"reggie not found in reggie directory: '{reggie_path}'"))
+    sys.exit(1)
 
 cases = []
 commands = []
@@ -144,9 +143,10 @@ with open(args.gitlab_ci, 'r') as f:  # read file as "f"
         # 2. Check for conditional (nightly, weekly) runs, by finding lines which contain "if"
         if s.find("if") >= 0:
             if re.search(r'\[(.*?)\]', s):  # find lines with "[....]" in it, meaning opening "[" and closing "]" parenthesis
-                if args.stage != 'full':  # Check stage only if user supplies one
-                    if s.lower().find(args.stage.lower()) == -1:  # Skip stages that do not correspond to the user supplied stage
-                        continue
+                # Check stage only if user supplies one
+                if args.stage != 'full' and s.lower().find(args.stage.lower()) == -1:  # Skip stages that do not correspond to the user supplied stage
+                    continue
+
                 if s.find("python") >= 0:  # find lines which contain "python"
                     c = s[s.find("python") :]  # create string "c" starting at "python"
                     if c.find(";") >= 0:  # find lines which contain ";"
@@ -165,20 +165,20 @@ with open(args.gitlab_ci, 'r') as f:  # read file as "f"
 
         # 3. Check other runs (generally "CHECKIN" examples)
         else:
-            if args.stage == 'full' or args.stage.lower() == 'do_checkin':  # Check stage only if user supplies one
-                if s.find("python") >= 0:  # find lines which contain "python"
-                    c = s[s.find("python") :]  # create string "c" starting at "python"
+            # Check stage only if user supplies one
+            if args.stage == 'full' or args.stage.lower() == 'do_checkin' and s.find("python") >= 0:  # find lines which contain "python"
+                c = s[s.find("python") :]  # create string "c" starting at "python"
 
-                    # Display Init Information
-                    firstCheckInExample = DisplayInitMessage(firstCheckInExample, 'CHECKIN examples: Removing reggie calls with supplied binary (it must be built from scratch here)')
+                # Display Init Information
+                firstCheckInExample = DisplayInitMessage(firstCheckInExample, 'CHECKIN examples: Removing reggie calls with supplied binary (it must be built from scratch here)')
 
-                    # Remove possible calls with binaries
-                    c = CheckBinaryCall(c)
+                # Remove possible calls with binaries
+                c = CheckBinaryCall(c)
 
-                    # Add the new command line only if it is unique
-                    if c not in commands:
-                        commands.append(c)  # add command line to list
-                        cases.append(gitlab_ci_tools.Case(c))  # and the case to the list of cases
+                # Add the new command line only if it is unique
+                if c not in commands:
+                    commands.append(c)  # add command line to list
+                    cases.append(gitlab_ci_tools.Case(c))  # and the case to the list of cases
 
 
 print(132 * '=')
@@ -189,22 +189,21 @@ if not args.dryrun:  # do not execute anythin in dryrun mode
     shutil.rmtree(target_directory, ignore_errors=True)
     tools.create_folder(target_directory)
     os.chdir(target_directory)
-    print("Creating output under %s" % target_directory)
+    print(f"Creating output under {target_directory}")
 else:
     print("List of possible cases from gitlab-ci.yml are")
 
 print(" ")
-i = 1
 nErrors = 0
-for case in cases:
+for i, case in enumerate(cases):
     # extract the reggie case from the command in the gitlay-ci.yml line by looking for "reggie.py" and "/regressioncheck/checks"
     c = case.command[case.command.find("reggie.py") + 9 :].strip()
     c = c[c.find("/regressioncheck/checks") :].strip()
     c = str(basedir + c).strip()  # add basedir to reggie-checks folder
     case_dir = c.split(" ")[0]
     if not os.path.exists(case_dir):  # Sanity check if folder exists: use only the part of the string up to the first (whitespace (" ")
-        print(tools.red("case directory not found under: '%s'" % case_dir))
-        exit(1)
+        print(tools.red(f"case directory not found under: '{case_dir}'"))
+        sys.exit(1)
 
     # set the command line "cmd"
     cmd = ["python", reggie_path] + [str(x).strip() for x in c.split(" ")]
@@ -215,19 +214,18 @@ for case in cases:
 
     # add compiletype if supplied
     if args.compiletype:
-        cmd.append("-t")
-        cmd.append(args.compiletype)
+        cmd.extend(("-t", args.compiletype))
 
     cmd_string = " ".join(cmd)
     # cmd = ["ls","-l"] # for testing some other commands
 
     if args.dryrun:  # do not execute anythin in dryrun mode
-        print(str("[%5d] " % i) + cmd_string)
+        print(str(f"[{i + 1:5d}] ") + cmd_string)
     else:
         # run case depending on supplied (or default) number "begin"
-        if i >= args.begin:  # run this case
-            s_Color = str("[%5d]" % i) + tools.blue(" Running  ") + cmd_string + " ..."
-            s_NoColor = str("[%5d]" % i) + " Running  " + cmd_string + " ..."
+        if i + 1 >= args.begin:  # run this case
+            s_Color = "f[{i+1:5d}]" + tools.blue(" Running  ") + cmd_string + " ..."
+            s_NoColor = str(f"[{i + 1:5d}]") + " Running  " + cmd_string + " ..."
             print(s_Color)
             # print(s+" ...", end=' ') # skip linebreak
             # print(s+" ...") # skip linebreak
@@ -257,13 +255,13 @@ for case in cases:
 
             # move the std.out file
             old_std = os.path.join(target_directory, 'std.out')
-            new_std = os.path.join(target_directory, 'std-%s.out' % i)
+            new_std = os.path.join(target_directory, f'std-{i + 1}.out')
             if os.path.exists(os.path.abspath(old_std)):  # check if file exists
                 os.rename(old_std, new_std)
 
             # move the err.out file
             old_err = os.path.join(target_directory, 'std.err')
-            new_err = os.path.join(target_directory, 'std-%s.err' % i)
+            new_err = os.path.join(target_directory, f'std-{i + 1}.err')
             if os.path.exists(os.path.abspath(old_err)):  # check if file exists
                 os.rename(old_err, new_err)
 
@@ -271,11 +269,9 @@ for case in cases:
             if args.only:  # if only one case is to be run -> exit(0)
                 print(" ")
                 gitlab_ci_tools.finalize(start, nErrors)
-                exit(0)
+                sys.exit(0)
         else:  # skip this case
-            print(str("[%5d]" % i) + tools.yellow(" Skipping ") + cmd_string)
-
-    i += 1
+            print("[f{i+1:5d}]" + tools.yellow(" Skipping ") + cmd_string)
 
 print(" ")
 gitlab_ci_tools.finalize(start, nErrors)

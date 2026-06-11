@@ -10,10 +10,10 @@
 #
 # You should have received a copy of the GNU General Public License along with reggie2.0. If not, see <http://www.gnu.org/licenses/>.
 # ==================================================================================================================================
-from __future__ import print_function  # required for print() function with line break via "end=' '"
 import logging
 import shutil
 import os
+import sys
 from timeit import default_timer as timer  # noqa: F401 imported but unused (kept for performance measurements)
 import time
 
@@ -129,13 +129,13 @@ def find_basedir(basedir):
             break
 
     if not found:
-        raise Exception("No basedir found. Started searching for 'CMakeLists.txt' in '%s'" % os.getcwd())
+        raise Exception(f"No basedir found. Started searching for 'CMakeLists.txt' in '{os.getcwd()}'")
 
     return basedir
 
 
 def remove_folder(path):
-    print("deleting folder '%s'" % path)
+    print(f"deleting folder '{path}'")
     shutil.rmtree(path, ignore_errors=True)
     # shutil.rmtree(path)
 
@@ -151,13 +151,12 @@ def create_folder(path):
                 os.makedirs(path)
                 if i > 60:
                     print(red("OutputDirectory() : Tried creating a directory more than 60 times. Stop."))
-                    exit(1)
+                    sys.exit(1)
                 break
             except OSError as e:
                 if e.errno != os.errno.EEXIST:
                     raise
                 time.sleep(1)  # wait 1 second before next try
-                pass
 
 
 def diff_lists(x, x_ref, tol, tol_type):
@@ -188,7 +187,7 @@ def diff_lists(x, x_ref, tol, tol_type):
         print(5 * "%25s" % ("x", "x_ref", "diff", "tolerance", "type"))
         for i in range(len(diff)):
             if not success[i]:
-                print(4 * "%25.14e" % (x[i], x_ref[i], diff[i], tol), "%24s" % (executed_tol_type[i]))
+                print(4 * "%25.14e" % (x[i], x_ref[i], diff[i], tol), f"{executed_tol_type[i]:24s}")
     return success
 
 
@@ -203,14 +202,8 @@ def diff_value(x, x_ref, tol, tol_type):
     tol_type : tolerance type, relative or absolute
     """
     # check tolerance type: absolute/relative (is the reference value is zero, absolute comparison is used)
-    if tol_type == 'absolute':
-        diff = abs(x - x_ref)
-    else:  # relative comparison
-        # if the reference value is zero, use absolute comparison
-        if abs(x_ref) > 0.0:
-            diff = abs(x / x_ref - 1.0)
-        else:
-            diff = x
+    # > if the reference value is zero, use absolute comparison
+    diff = abs(x - x_ref) if tol_type == 'absolute' else abs(x / x_ref - 1.0) if abs(x_ref) > 0.0 else x
 
     # determie success logical list for return variable
     success = diff <= tol
@@ -219,7 +212,7 @@ def diff_value(x, x_ref, tol, tol_type):
     if not success:
         print("\nDifferences in vector comparison:")
         print(5 * "%25s   " % ("x", "x_ref", "diff", "tolerance", "type"))
-        print(4 * "%25.14e   " % (x, x_ref, diff, tol), "%24s" % (tol_type))
+        print(4 * "%25.14e   " % (x, x_ref, diff, tol), f"{tol_type:24s}")
 
     return success
 
@@ -228,7 +221,7 @@ def isKeyOf(a, key_IN):
     """Check if the dictionary 'a' contains a key 'key_IN'"""
     found = False
     number = 0
-    for key in a.keys():
+    for key in a:
         if key == key_IN:
             number += 1
             found = True

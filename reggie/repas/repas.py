@@ -16,7 +16,7 @@ import logging
 import argparse
 import shutil
 import re
-from sys import platform
+from sys import platform, exit
 import socket
 from timeit import default_timer as timer
 
@@ -45,7 +45,7 @@ General workflow:
 
 
 def main():
-    print('')
+    print()
     print(tools.red(r'=============================================================================================================================='))
     print(tools.red(r'         _____                    _____                    _____                    _____                    _____            '))
     print(tools.red(r'         /\    \                  /\    \                  /\    \                  /\    \                  /\    \          '))
@@ -69,7 +69,7 @@ def main():
     print(tools.red(r'        \:|   |                  \::/    /                                         \::/    /                \::/    /         '))
     print(tools.red(r'         \|___|                   \/____/                                           \/____/                  \/____/          '))
     print(tools.red(r'=============================================================================================================================='))
-    print('')
+    print()
 
     start = timer()
 
@@ -91,7 +91,7 @@ def main():
 
     if re.search('^linux', platform):
         hostname = socket.gethostname()
-        print("platform: %s, hostname: %s" % (platform, hostname))
+        print(f"platform: {platform}, hostname: {hostname}")
         if re.search('^mom[0-9]+$', hostname):
             print(tools.yellow('Automatic detection of hlrs system: Assuming aprun is used and setting args.hlrs = True'))
             args.hlrs = True
@@ -113,16 +113,13 @@ def main():
     # -s for save
     # -a for hlrs
     # -d1 for debug mode 1
-    if args.hlrs:
-        cmd = [reggie_cmd, '-e', str(args.exe), '.', '-s', '-a', '-d1']
-    else:
-        cmd = [reggie_cmd, '-e', str(args.exe), '.', '-s', '-d1']
+    cmd = [reggie_cmd, '-e', str(args.exe), '.', '-s', '-a', '-d1'] if args.hlrs else [reggie_cmd, '-e', str(args.exe), '.', '-s', '-d1']
     # cmd = ["ls","-l"] # for testing some other commands
     if args.case:
         if os.path.isdir(args.case):
             os.chdir(args.case)
         else:
-            raise Exception('Supplied case directory is not correctly defined! -c [%s]' % args.case)
+            raise Exception(f'Supplied case directory is not correctly defined! -c [{args.case}]')
 
     if args.dummy:
         open('parameter_rename.ini', 'a').close()
@@ -137,12 +134,11 @@ def main():
     # Edit parameter.ini for multiple parameters, subsequently, the reggie will change a set of variables
     #      and produce output which must be collected
     # loop all runs
-    i = 0
-    for combi in combis:
+    for i, combi in enumerate(combis):
         # print setup info
         print(132 * '-')
         for key, value in combi.items():
-            print("[%25s=%25s] digit=%3s" % (key, value, digits[key]))
+            print(f"[{key:25s}={value:25s}] digit={digits[key]:3s}")
 
         # create parameter file for current combi
         repas.create(combi, digits)
@@ -152,7 +148,6 @@ def main():
 
         # run the code and repas output
         repas.run(i)
-        i += 1
 
         # save data: check output directory for .pdf and .csv files and rename according to info in 'parameter_rename.ini'
         repas.save_data()
