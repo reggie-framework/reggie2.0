@@ -16,7 +16,8 @@ dependencies = [
     "scipy>=1.15.3",
     "gcovr>=8.4",
     "coverage>=7.10.7",
-    "ty>=0.0.38"
+    "ty>=0.0.38",
+    "typing-extensions>=4.0.0"
     ]
 keywords = [
     "regression checks",

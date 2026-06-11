@@ -31,7 +31,10 @@ General workflow:
 
 
 def main():
-    print()
+    # Local imports ----------------------------------------
+    from reggie.common.common_vars import Common
+
+    # ------------------------------------------------------
     print(tools.red(r'       oooooooo      ====================') + tools.yellow(r'=====================================') + tools.green(r'====================      oooooooo       '))
     print(tools.red(r'    ooo   oo   ooo      _____    ______  ') + tools.yellow(r'  _____    _____   _____   ______    ') + tools.green(r' ___         ___       ooo   oo   ooo    '))
     print(tools.red(r'   oo     oo     oo    |  __ \  |  ____| ') + tools.yellow(r' / ____|  / ____| |_   _| |  ____|   ') + tools.green(r'|__ \       / _ \     oo     oo     oo   '))
@@ -45,6 +48,12 @@ def main():
 
     start = timer()
     print(sys.version_info)
+
+    common = Common()
+    program = common.program
+    version = common.version
+    commit = common.commit
+    print(f'{program} version {version}' + (f' [commit {commit}]' if commit else ''))
 
     # 1.  get the command line arguments 'args' and all valid build combinations in the check directory from 'builds.ini'
     args, builds = args_parser.getArgsAndBuilds()
