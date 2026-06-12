@@ -25,7 +25,7 @@ Reggie is a regression testing framework for scientific simulation codes. It hel
 
 # Reggie
 
-![Reggie flowchart](docs/figures/reggie-flowchart.png)
+![Reggie flowchart](https://raw.githubusercontent.com/reggie-framework/reggie/refs/heads/main/docs/figures/reggie-flowchart.png)
 
 Show the available options of the regression checker
 ```
