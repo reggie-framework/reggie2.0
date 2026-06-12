@@ -1,6 +1,6 @@
 # List of Contributors
 
-This is a (possibly incomplete) list of the people who contributed to reggie2.0.
+This is a (possibly incomplete) list of the people who contributed to reggie.
 
 * Stephen Copplestone
 * Matthias Sonntag

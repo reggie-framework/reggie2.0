@@ -1,9 +1,12 @@
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/12080/badge)](https://www.bestpractices.dev/projects/12080)
 [![OpenSSF Baseline](https://www.bestpractices.dev/projects/12080/baseline)](https://www.bestpractices.dev/projects/12080)
 
+Reggie is a regression testing framework for scientific simulation codes. It helps automate test execution, output comparison, and result validation for code development and continuous integration workflows. Examples can be found in [PICLas](https://github.com/piclas-framework/piclas) and [FLEXI](https://github.com/flexi-framework/flexi).
+
+
 # Table of Contents
 
-- [Reggie2.0](#reggie20-toolbox)
+- [Reggie](#reggie20-toolbox)
   - [Installation](#installation)
   - [Ruff linter and formatter](#ruff-linter-and-formatter)
   - [Code Coverage](#code-coverage)
@@ -20,7 +23,7 @@
     - [Use the same parameter list for multiple parameters in parameter.ini](#use-the-same-parameter-list-for-multiple-parameters-in-parameterini)
     - [Example](#example-2)
 
-# Reggie2.0
+# Reggie
 
 ```mermaid
 graph TD;
@@ -43,23 +46,24 @@ reggie --help
 ```
 
 ## Installation
-Installation can be done either done with the current workflow to keep an editable package for development, i.e.
+The latest release is published to PyPI and can be installed with
 ```
-git clone git@XXXXXXXX
-cd reggie2.0
+pip install reggie-framework
+```
+For access to newer features and to keep an editable package for development the installation is done with
+```
+git clone https://github.com/reggie-framework/reggie.git
+cd reggie
 pip install -e .
 ```
-Or without editing possibility directly via `pip` and `git` with
-```
-pip install git+https://github.com/XXXXXXXX
-```
-Reggie2.0 uses [pre-commit](https://pre-commit.com/) for maintaining code quality. Pre-commit can be installed with
+If you want to help develop Reggie, please consider that Reggie uses [pre-commit](https://pre-commit.com/) for maintaining code quality. Pre-commit can be installed with
 ```
 pre-commit install
 ```
+and will execute the pre-commit hooks automatically.
 ## Ruff linter and formatter
 
-Reggie2.0 uses [Ruff](https://docs.astral.sh/ruff/) for code linting and formatting of all .py files to maintain consistent code quality and style. Ruff is a fast Python linter and formatter that combines multiple individual tools like flake8, black, isort, etc.
+Reggie uses [Ruff](https://docs.astral.sh/ruff/) for code linting and formatting of all .py files to maintain consistent code quality and style. Ruff is a fast Python linter and formatter that combines multiple individual tools like flake8, black, isort, etc.
 
 ### Pre-commit Integration
 
@@ -127,7 +131,7 @@ if condition: # fmt: skip
 degree to which the source code of a program is executed when a particular test suite is run." - [Wikipedia](https://en.wikipedia.org/wiki/Code_coverage)
 
 ### gcovr: Coverage of the .f90 code
-Reggie2.0 supports code coverage analysis using [gcovr](https://gcovr.com/). To enable code coverage:
+Reggie supports code coverage analysis using [gcovr](https://gcovr.com/). To enable code coverage:
 
 1. Compile the executable with the `--coverage` flag in your build configuration.
    For example
@@ -161,7 +165,7 @@ reggie /path/to/single/regressiontest -e /path/to/executable -o 1
 reggie /path/to/single/regressiontest -e /path/to/executable -o 2
 ```
 
-### Python coverage.py package: Coverage of the reggie2.0 code itself
+### Python coverage.py package: Coverage of the reggie code itself
 It is also possible to generate a report of the reggie tool itself.
 For this, each reggie call is wrapped with the [Python coverage tool](https://coverage.readthedocs.io/).
 Make sure that the package is installed.
@@ -216,14 +220,14 @@ gitlab-ci.py
 ## Overview
 
 - [Table of Contents](#table-of-contents)
-- [Reggie2.0](#reggie20)
+- [Reggie](#reggie20)
   - [Installation](#installation)
   - [Ruff linter and formatter](#ruff-linter-and-formatter)
     - [Pre-commit Integration](#pre-commit-integration)
     - [Ruff configuration](#ruff-configuration)
   - [Code Coverage](#code-coverage)
     - [gcovr: Coverage of the .f90 code](#gcovr-coverage-of-the-f90-code)
-    - [Python coverage.py package: Coverage of the reggie2.0 code itself](#python-coveragepy-package-coverage-of-the-reggie20-code-itself)
+    - [Python coverage.py package: Coverage of the reggie code itself](#python-coveragepy-package-coverage-of-the-reggie20-code-itself)
   - [Code hierarchy and required *.ini* files](#code-hierarchy-and-required-ini-files)
 - [Analyze routines for "analyze.ini"](#analyze-routines-for-analyzeini)
   - [Overview](#overview)

@@ -118,7 +118,7 @@ class Common:
 
     @property
     def __program__(self) -> str:
-        return 'reggie2.0'
+        return 'reggie'
 
     @property
     def program(self) -> str:

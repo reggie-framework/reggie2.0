@@ -2,7 +2,7 @@
 [project]
 name = "reggie"
 version = "2.0.0"
-description = ""
+description = "A regression testing framework for scientific simulation codes"
 license = "GPL-3.0-only"
 readme = "README.md"
 authors = [
@@ -27,12 +27,11 @@ keywords = [
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Operating System :: OS Independent",
-    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Programming Language :: Python :: 3",
 ]
 
 [project.urls]
-repository = "https://github.com/piclas-framework/reggie2.0"
+repository = "https://github.com/reggie-framework/reggie"
 
 [project.scripts]
 reggie = "reggie.reggie:main"
