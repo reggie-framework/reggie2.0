@@ -102,6 +102,7 @@ def getArgsAndBuilds():
     """Get command line arguments and builds in check directory from 'builds.ini'"""
     # fmt: off
     parser = argparse.ArgumentParser(description='DESCRIPTION:\nRegression checker for NRG codes.\nSupply the path to a /regressioncheck/checks/ directory within a repository containing a CMakeLists.txt file which can automatically be build using cmake. ', formatter_class=argparse.RawTextHelpFormatter)  # noqa: E501 Line too long
+    parser.add_argument('-v', '--version', action='version', version='') # print nothing since the version is displayed anyway when reggie is called
     parser.add_argument('-c', '--carryon', action='store_true', help='''Continue build/run process.
       --carryon         : build non-existing binary-combinations and run all examples for thoses builds
       --carryon --run   : run all failed examples''')
