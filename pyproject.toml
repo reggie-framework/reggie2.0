@@ -1,7 +1,7 @@
 # pyproject.toml compatible with Poetry (version 2.0+)
 [project]
-name = "reggie"
-version = "2.0.0"
+name = "reggie-framework"
+version = "1.0.0"
 description = "A regression testing framework for scientific simulation codes"
 license = "GPL-3.0-only"
 readme = "README.md"
@@ -45,6 +45,11 @@ build-backend = "poetry.core.masonry.api"
 # Legacy setuptools support
 [tool.setuptools.packages.find]
 include = ["reggie*"]
+
+[tool.poetry]
+packages = [
+    { include = "reggie" }
+]
 
 [tool.ruff]
 line-length = 220
