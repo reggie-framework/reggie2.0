@@ -82,11 +82,10 @@ class Common:
     def __version__(self) -> Version:
         # Retrieve version from package metadata
         try:
-            package = pathlib.Path(__file__).parent.parent.name
-            version = importlib.metadata.version(package)
+            version = importlib.metadata.version("reggie-framework")
         # Fallback to pyproject.toml
         except importlib.metadata.PackageNotFoundError as e:
-            pyproject = pathlib.Path(__file__).parent.parent.parent / 'pyproject.toml'
+            pyproject = pathlib.Path(__file__).parent.parent / 'pyproject.toml'
             if not pyproject.exists():
                 raise FileNotFoundError(f'pyproject.toml not found at {pyproject}') from e
 
