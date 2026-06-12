@@ -1,14 +1,14 @@
 # ==================================================================================================================================
 # Copyright (c) 2017 - 2018 Stephen Copplestone and Matthias Sonntag
 #
-# This file is part of reggie2.0 (gitlab.com/reggie2.0/reggie2.0). reggie2.0 is free software: you can redistribute it and/or modify
+# This file is part of reggie (github.com/reggie-framework/reggie). reggie is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3
 # of the License, or (at your option) any later version.
 #
-# reggie2.0 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+# reggie is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 # of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License v3.0 for more details.
 #
-# You should have received a copy of the GNU General Public License along with reggie2.0. If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License along with reggie. If not, see <http://www.gnu.org/licenses/>.
 # ==================================================================================================================================
 from timeit import default_timer as timer
 import logging
@@ -35,15 +35,15 @@ def main():
     from reggie.common.common_vars import Common
 
     # ------------------------------------------------------
-    print(tools.red(r'       oooooooo      ====================') + tools.yellow(r'=====================================') + tools.green(r'====================      oooooooo       '))
-    print(tools.red(r'    ooo   oo   ooo      _____    ______  ') + tools.yellow(r'  _____    _____   _____   ______    ') + tools.green(r' ___         ___       ooo   oo   ooo    '))
-    print(tools.red(r'   oo     oo     oo    |  __ \  |  ____| ') + tools.yellow(r' / ____|  / ____| |_   _| |  ____|   ') + tools.green(r'|__ \       / _ \     oo     oo     oo   '))
-    print(tools.red(r'  oo      oo      oo   | |__) | | |__    ') + tools.yellow(r'| |  __  | |  __    | |   | |__      ') + tools.green(r'   ) |     | | | |   oo      oo      oo  '))
-    print(tools.red(r'  oo     oooo     oo   |  _  /  |  __|   ') + tools.yellow(r'| | |_ | | | |_ |   | |   |  __|     ') + tools.green(r'  / /      | | | |   oo     oooo     oo  '))
-    print(tools.red(r'  oo    oooooo    oo   | | \ \  | |____  ') + tools.yellow(r'| |__| | | |__| |  _| |_  | |____    ') + tools.green(r' / /_   _  | |_| |   oo    oooooo    oo  '))
-    print(tools.red(r'   oo oo  oo  oo oo    |_|  \_\ |______| ') + tools.yellow(r' \_____|  \_____| |_____| |______|   ') + tools.green(r'|____| (_)  \___/     oo oo  oo  oo oo   '))
-    print(tools.red(r'    ooo   oo   ooo                       ') + tools.yellow(r'                                     ') + tools.green(r'                       ooo   oo   ooo    '))
-    print(tools.red(r'       oooooooo      ====================') + tools.yellow(r'=====================================') + tools.green(r'====================      oooooooo       '))
+    print(tools.red(r'       oooooooo      ===========') + tools.yellow(r'==================================') + tools.green(r'============      oooooooo       '))
+    print(tools.red(r'    ooo   oo   ooo      _____   ') + tools.yellow(r' ______    _____    _____   _____ ') + tools.green(r'  ______       ooo   oo   ooo    '))
+    print(tools.red(r'   oo     oo     oo    |  __ \  ') + tools.yellow(r'|  ____|  / ____|  / ____| |_   _|') + tools.green(r' |  ____|     oo     oo     oo   '))
+    print(tools.red(r'  oo      oo      oo   | |__) | ') + tools.yellow(r'| |__    | |  __  | |  __    | |  ') + tools.green(r' | |__       oo      oo      oo  '))
+    print(tools.red(r'  oo     oooo     oo   |  _  /  ') + tools.yellow(r'|  __|   | | |_ | | | |_ |   | |  ') + tools.green(r' |  __|      oo     oooo     oo  '))
+    print(tools.red(r'  oo    oooooo    oo   | | \ \  ') + tools.yellow(r'| |____  | |__| | | |__| |  _| |_ ') + tools.green(r' | |____     oo    oooooo    oo  '))
+    print(tools.red(r'   oo oo  oo  oo oo    |_|  \_\ ') + tools.yellow(r'|______|  \_____|  \_____| |_____|') + tools.green(r' |______|     oo oo  oo  oo oo   '))
+    print(tools.red(r'    ooo   oo   ooo              ') + tools.yellow(r'                                  ') + tools.green(r'               ooo   oo   ooo    '))
+    print(tools.red(r'       oooooooo      ===========') + tools.yellow(r'==================================') + tools.green(r'============      oooooooo       '))
     print()
 
     start = timer()

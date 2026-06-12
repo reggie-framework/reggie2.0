@@ -14,3 +14,4 @@ std.err
 config-reggie.json
 tags
 .tags
+dist/

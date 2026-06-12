@@ -2,14 +2,14 @@
 # ==================================================================================================================================
 # Copyright (c) 2017 - 2018 Stephen Copplestone and Matthias Sonntag
 #
-# This file is part of reggie2.0 (gitlab.com/reggie2.0/reggie2.0). reggie2.0 is free software: you can redistribute it and/or modify
+# This file is part of reggie (github.com/reggie-framework/reggie). reggie is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3
 # of the License, or (at your option) any later version.
 #
-# reggie2.0 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+# reggie is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 # of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License v3.0 for more details.
 #
-# You should have received a copy of the GNU General Public License along with reggie2.0. If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License along with reggie. If not, see <http://www.gnu.org/licenses/>.
 # ==================================================================================================================================
 
 # ==================================================================================================================================
@@ -20,7 +20,7 @@ spec:
   inputs:
     DO_DEPLOY:
       type: boolean
-      description: "Push the master branch to the reggie-framework/reggie2.0 repository on github"
+      description: "Push the master branch to the reggie-framework/reggie repository on github"
       default: false
 ---
 # Official language image. Look for the different tagged releases at:
@@ -162,7 +162,7 @@ github:
     - rm -rf reggie_github || true ;
     - git clone -b master --single-branch git@piclas.boltzplatz.eu:reggie2.0/reggie2.0.git reggie_github ;
     - cd reggie_github ;
-    - git remote add reggie-framework git@github.com-framework-reggie2.0:reggie-framework/reggie2.0.git ;
+    - git remote add reggie-framework git@github.com-framework-reggie2.0:reggie-framework/reggie.git ;
     - git push --force --follow-tags reggie-framework master ;
   rules:
     - if: $[[ inputs.DO_DEPLOY ]] == true

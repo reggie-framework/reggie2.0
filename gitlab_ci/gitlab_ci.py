@@ -1,14 +1,14 @@
 # ==================================================================================================================================
 # Copyright (c) 2017 - 2018 Stephen Copplestone
 #
-# This file is part of reggie2.0 (gitlab.com/reggie2.0/reggie2.0). reggie2.0 is free software: you can redistribute it and/or modify
+# This file is part of reggie (github.com/reggie-framework/reggie). reggie is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3
 # of the License, or (at your option) any later version.
 #
-# reggie2.0 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+# reggie is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 # of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License v3.0 for more details.
 #
-# You should have received a copy of the GNU General Public License along with reggie2.0. If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License along with reggie. If not, see <http://www.gnu.org/licenses/>.
 # ==================================================================================================================================
 from timeit import default_timer as timer
 import os
@@ -21,7 +21,7 @@ import tools  # ty:ignore[unresolved-import]
 import gitlab_ci_tools  # ty:ignore[unresolved-import]
 
 # import reggie source code
-# use reggie2.0 functions by adding the path
+# use reggie functions by adding the path
 import settings  # ty:ignore[unresolved-import]
 
 settings.init()  # Call only once
@@ -81,7 +81,7 @@ start = timer()
 
 # fmt: off
 # argument parser
-parser = argparse.ArgumentParser(description='DESCRIPTION:\nScript for executing the regression checker for NRG codes multiple times with information from a gitlab-ci.yml runner file (the relevant python calls will be extracted).\nSupply the path to the gitlab-ci.yml of the repository that also contains a /regressioncheck/checks structure supporting reggie2.0 and multiple tests can automatically be performed.\nThe output will be stored in the top repository directory under /output_dir_gitlab_tool/.', formatter_class=argparse.RawTextHelpFormatter) # noqa: E501 line too long
+parser = argparse.ArgumentParser(description='DESCRIPTION:\nScript for executing the regression checker for NRG codes multiple times with information from a gitlab-ci.yml runner file (the relevant python calls will be extracted).\nSupply the path to the gitlab-ci.yml of the repository that also contains a /regressioncheck/checks structure supporting reggie and multiple tests can automatically be performed.\nThe output will be stored in the top repository directory under /output_dir_gitlab_tool/.', formatter_class=argparse.RawTextHelpFormatter) # noqa: E501 line too long
 parser.add_argument('gitlab_ci', help='Path to gitlab-ci.yml which also contains a /regressioncheck/checks/... structure')
 parser.add_argument('-s', '--stage', default='full', help='Gitlab-ci execution stage: Supply DO_NIGHTLY, DO_WEEKLY, DO_CHECKIN, etc. flag for extracting the relevant cases from gitlab-ci.yml. Default executes all stages.') # noqa: E501
 parser.add_argument('-b', '--begin', type=int, default=1,  help='Number of the case: where to start with the run (from the list that this tools creates)')
