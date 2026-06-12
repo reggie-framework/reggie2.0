@@ -25,20 +25,7 @@ Reggie is a regression testing framework for scientific simulation codes. It hel
 
 # Reggie
 
-```mermaid
-graph TD;
-  gitlab_ci.py["gitlab_ci.py"]-->|call|A[reggie.py];
-  repas.py-->|call|A[reggie.py];
-  repas.py-->|read|parameter_rename.ini;
-  repas.py-->|read|parameter_change.ini;
-  repas.py-->|read/write|parameter[parameter.ini];
-  A-->|read|builds.ini;
-  A-->|read|analyze.ini;
-  A-->|read|command_line.ini;
-  A-->|read|excludeBuild.ini["excludeBuild.ini (optional)"];
-  A-->|read|B["externals.ini (optional)"];
-  A-->|read/write|parameter.ini;
-```
+![Reggie flowchart](docs/figures/reggie-flowchart.png)
 
 Show the available options of the regression checker
 ```
