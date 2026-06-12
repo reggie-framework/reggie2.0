@@ -77,12 +77,12 @@ jobs:
         shell: bash
         run: |
           pip install twine
-          twine check dist/reggie-*
+          twine check dist/reggie*
 
       - name: Test install
         shell: bash
         run: |
-          pip install dist/reggie-*.whl
+          pip install dist/reggie*.whl
           reggie --version
 
       - name: Upload distribution artifact
